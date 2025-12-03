@@ -1,24 +1,40 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
-
-import { useColorScheme } from '@/hooks/use-color-scheme';
-
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
+import "@react-native-firebase/app";
+import { Stack } from "expo-router";
+import "react-native-gesture-handler";
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
+    const userId = "123";
+    // const sendTokenToBackend = async (token: string) => {
+    //     try {
+    //         await fetch("https://your-api.com/save-fcm-token/", {
+    //             method: "POST",
+    //             headers: {
+    //                 "Content-Type": "application/json",
+    //                 // optionally include auth header / session cookie
+    //             },
+    //             body: JSON.stringify({
+    //                 user_id: userId,
+    //                 fcm_token: token,
+    //             }),
+    //         });
+    //     } catch (e) {
+    //         console.error("Failed to send FCM token to backend", e);
+    //     }
+    // };
 
-  return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
-  );
+    // useFCM(sendTokenToBackend);
+    return (
+        <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="index" />
+            <Stack.Screen name="sign-in" />
+            <Stack.Screen
+                name="home"
+                options={{
+                    headerShown: true,
+                    title: "Oddo Webview",
+                    animation: "slide_from_right",
+                }}
+            />
+        </Stack>
+    );
 }
