@@ -2,10 +2,11 @@ import { Feather } from "@expo/vector-icons";
 import BottomSheet from "@gorhom/bottom-sheet";
 import CookieManager from "@react-native-cookies/cookies";
 import { getApps } from "@react-native-firebase/app";
+import { getMessaging } from "@react-native-firebase/messaging";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
     Alert,
     KeyboardAvoidingView,
@@ -123,15 +124,15 @@ const Signin = () => {
         }
     };
 
-    // useEffect(() => {
-    //     const init = async () => {
-    //         // 1) Get current token
-    //         const token = await messaging().getToken();
-    //         console.log("FCM Token:", token);
-    //     };
+    useEffect(() => {
+        const init = async () => {
+            // 1) Get current token
+            const token = await getMessaging().getToken();
+            console.log("FCM Token:", token);
+        };
 
-    //     init();
-    // }, []);
+        init();
+    }, []);
 
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>

@@ -1,7 +1,7 @@
 {
     "expo": {
-        "name": "dcl",
-        "slug": "dcl",
+        "name": "DCL Odoo Module",
+        "slug": "dcl-odoo-module",
         "version": "1.0.0",
         "orientation": "portrait",
         "icon": "./assets/images/icon.png",
@@ -10,7 +10,7 @@
         "newArchEnabled": true,
         "ios": {
             "supportsTablet": true,
-            "bundleIdentifier": "com.shakil0823.dcl"
+            "bundleIdentifier": "com.odoo.dcl"
         },
         "android": {
             "adaptiveIcon": {
@@ -21,7 +21,7 @@
             },
             "edgeToEdgeEnabled": true,
             "predictiveBackGestureEnabled": false,
-            "package": "com.shakil0823.dcl"
+            "package": "com.odoo.dcl"
         },
         "web": {
             "output": "static",

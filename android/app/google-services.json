@@ -7,28 +7,9 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:724969865560:android:e65f4f9da9d48f0bd0a52d",
+        "mobilesdk_app_id": "1:724969865560:android:d3094604fa424358d0a52d",
         "android_client_info": {
-          "package_name": "com.shakil0823.dcl"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyB1qN9T2G_78eXNoeykZXY0Hg1XFpoWBf8"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:724969865560:android:98727d8eb7cf6ebbd0a52d",
-        "android_client_info": {
-          "package_name": "odoo.push_notificaton"
+          "package_name": "com.odoo.dcl"
         }
       },
       "oauth_client": [],

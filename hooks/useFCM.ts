@@ -1,8 +1,8 @@
-import messaging from "@react-native-firebase/messaging";
+import messaging, { getMessaging } from "@react-native-firebase/messaging";
 import { useEffect } from "react";
 
 async function requestUserPermission() {
-    const authStatus = await messaging().requestPermission();
+    const authStatus = await getMessaging().requestPermission();
     console.log("🚀 ~ requestUserPermission ~ authStatus:", authStatus);
     const enabled =
         authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
@@ -18,12 +18,12 @@ export function useFCM(onNewToken: (token: string) => void) {
             if (!enabled) return;
 
             // 1) Get current token
-            const token = await messaging().getToken();
+            const token = await getMessaging().getToken();
             console.log("FCM Token:", token);
             onNewToken(token);
 
             // 2) Listen for token refresh
-            const unsubscribeTokenRefresh = messaging().onTokenRefresh(
+            const unsubscribeTokenRefresh = getMessaging().onTokenRefresh(
                 (newToken) => {
                     console.log("FCM Token refreshed:", newToken);
                     onNewToken(newToken);
@@ -31,7 +31,7 @@ export function useFCM(onNewToken: (token: string) => void) {
             );
 
             // 3) Foreground message listener (optional – can move elsewhere)
-            const unsubscribeOnMessage = messaging().onMessage(
+            const unsubscribeOnMessage = getMessaging().onMessage(
                 async (remoteMessage) => {
                     console.log("Foreground message:", remoteMessage);
                     // show custom in-app banner / Alert / etc.
