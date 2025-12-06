@@ -1,31 +1,51 @@
-import { useFCM } from "@/hooks/useFCM";
-import { getApps } from "@react-native-firebase/app";
-import { Stack } from "expo-router";
+import { getMessaging } from "@react-native-firebase/messaging";
+import { router, Stack } from "expo-router";
+import { useEffect } from "react";
 import "react-native-gesture-handler";
 
 export default function RootLayout() {
-    const userId = "123";
-    const sendTokenToBackend = async (token: string) => {
-        try {
-            await fetch("https://your-api.com/save-fcm-token/", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    // optionally include auth header / session cookie
-                },
-                body: JSON.stringify({
-                    user_id: userId,
-                    fcm_token: token,
-                }),
+    useEffect(() => {
+        // 1️⃣ App opened from background
+        const unsubscribe = getMessaging().onNotificationOpenedApp(
+            (remoteMessage) => {
+                if (remoteMessage?.data) {
+                    handleNotificationNavigation(remoteMessage.data);
+                }
+            }
+        );
+
+        // 2️⃣ App opened from quit (background handler already stored data)
+        if (global.__notificationData) {
+            handleNotificationNavigation(global.__notificationData);
+            global.__notificationData = null;
+        }
+
+        return unsubscribe;
+    }, []);
+
+    const handleNotificationNavigation = (data: any) => {
+        console.log("🔀 Navigating using notification data:", data);
+
+        // Example: Odoo URL passed from backend
+        if (data.url) {
+            router.push({
+                pathname: "/home",
+                params: { baseUrl: data.url },
             });
-        } catch (e) {
-            console.error("Failed to send FCM token to backend", e);
+            return;
+        }
+
+        // Example: Navigate with task_id
+        if (data.type === "task" && data.task_id) {
+            const url = `/web#id=${data.task_id}&model=project.task&view_type=form`;
+
+            router.push({
+                pathname: "/home",
+                params: { url },
+            });
         }
     };
 
-    useFCM(sendTokenToBackend);
-
-    console.log("FIREBASE APPS:", getApps());
     return (
         <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="index" />

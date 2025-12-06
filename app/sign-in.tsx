@@ -1,6 +1,8 @@
+import { useFCMRegistration } from "@/hooks/useFCMRegistration";
 import { Feather } from "@expo/vector-icons";
 import BottomSheet from "@gorhom/bottom-sheet";
 import CookieManager from "@react-native-cookies/cookies";
+import { getApps } from "@react-native-firebase/app";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -24,7 +26,6 @@ import { useDomainStore } from "../store/domainStore";
 import { Session, useSessionStore } from "../store/sessionStore";
 
 const Signin = () => {
-    // Domain store
     const {
         domain,
         databases,
@@ -45,19 +46,14 @@ const Signin = () => {
 
     const addSession = useSessionStore((state) => state.addSession);
     const bottomSheetRef = useRef<BottomSheet>(null);
+    const userId = "123";
+    const { registerFCM } = useFCMRegistration(userId);
 
-    const databasesList = [
-        "db1",
-        "db2",
-        "db3",
-        "db4",
-        "db5",
-        "db6",
-        "db7",
-        "db8",
-        "db9",
-        "db10",
-    ];
+    useEffect(() => {
+        if (userId) {
+            registerFCM();
+        }
+    }, [userId]);
 
     // Load stored domain + DB
     useEffect(() => {
@@ -205,6 +201,9 @@ const Signin = () => {
             addSession(newSession);
             await setSessionCookie(newSession);
 
+            // Register FCM
+            registerFCM();
+
             navigateToHome(baseUrl);
         } catch (err: any) {
             Alert.alert("Error", err.message);
@@ -212,6 +211,8 @@ const Signin = () => {
             setLoading(false);
         }
     };
+
+    console.log("Firebase Apps:", getApps());
 
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
