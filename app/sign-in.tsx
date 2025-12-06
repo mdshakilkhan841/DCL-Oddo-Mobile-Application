@@ -2,7 +2,8 @@ import { useFCMRegistration } from "@/hooks/useFCMRegistration";
 import { Feather } from "@expo/vector-icons";
 import BottomSheet from "@gorhom/bottom-sheet";
 import CookieManager from "@react-native-cookies/cookies";
-import { getApps } from "@react-native-firebase/app";
+import { getMessaging } from "@react-native-firebase/messaging";
+import * as Clipboard from "expo-clipboard";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -43,6 +44,7 @@ const Signin = () => {
     const [loading, setLoading] = useState(false);
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
     const [dbFetching, setDbFetching] = useState(false);
+    const [fcmToken, setFcmToken] = useState<string | null>(null);
 
     const addSession = useSessionStore((state) => state.addSession);
     const bottomSheetRef = useRef<BottomSheet>(null);
@@ -50,9 +52,12 @@ const Signin = () => {
     const { registerFCM } = useFCMRegistration(userId);
 
     useEffect(() => {
-        if (userId) {
-            registerFCM();
-        }
+        const initializeAndGetToken = async () => {
+            const fcmToken = await getMessaging().getToken();
+            console.log("🚀 ~ initializeAndGetToken ~ fcmToken:", fcmToken);
+            setFcmToken(fcmToken);
+        };
+        initializeAndGetToken();
     }, [userId]);
 
     // Load stored domain + DB
@@ -212,8 +217,6 @@ const Signin = () => {
         }
     };
 
-    console.log("Firebase Apps:", getApps());
-
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
             <StatusBar style="auto" />
@@ -229,6 +232,35 @@ const Signin = () => {
                         contentContainerStyle={styles.scrollViewContent}
                         showsVerticalScrollIndicator={false}
                     >
+                        {/* FCM Token Display */}
+                        {fcmToken && (
+                            <View style={styles.fcmContainer}>
+                                <Text style={styles.fcmLabel}>FCM Token:</Text>
+                                <View style={styles.fcmTokenWrapper}>
+                                    <Text
+                                        style={styles.fcmTokenText}
+                                        numberOfLines={1}
+                                        ellipsizeMode="middle"
+                                    >
+                                        {fcmToken}
+                                    </Text>
+                                    <TouchableOpacity
+                                        onPress={async () => {
+                                            await Clipboard.setStringAsync(
+                                                fcmToken
+                                            );
+                                        }}
+                                    >
+                                        <Feather
+                                            name="copy"
+                                            size={18}
+                                            color="#34495e"
+                                        />
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        )}
+
                         <View style={styles.header}>
                             <Text style={styles.title}>Welcome Back!</Text>
                             <Text style={styles.subtitle}>
@@ -472,5 +504,29 @@ const styles = StyleSheet.create({
         fontSize: 15,
         fontWeight: "500",
         textAlign: "center",
+    },
+    fcmContainer: {
+        width: "85%",
+        alignSelf: "center",
+    },
+    fcmLabel: {
+        fontSize: 12,
+        color: "#34495e",
+        fontWeight: "bold",
+        marginBottom: 4,
+    },
+    fcmTokenWrapper: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        backgroundColor: "rgba(255, 255, 255, 0.5)",
+        padding: 10,
+        borderRadius: 8,
+        marginBottom: 20,
+    },
+    fcmTokenText: {
+        color: "#2c3e50",
+        flex: 1,
+        marginRight: 10,
     },
 });
