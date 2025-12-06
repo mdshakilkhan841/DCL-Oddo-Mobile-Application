@@ -1,13 +1,12 @@
 import { Feather } from "@expo/vector-icons";
 import BottomSheet from "@gorhom/bottom-sheet";
 import CookieManager from "@react-native-cookies/cookies";
-import { getApps } from "@react-native-firebase/app";
-import { getMessaging } from "@react-native-firebase/messaging";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useRef, useState } from "react";
 import {
+    ActivityIndicator,
     Alert,
     KeyboardAvoidingView,
     Platform,
@@ -21,27 +20,56 @@ import {
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import SessionModal from "../components/SessionModal";
+import { useDomainStore } from "../store/domainStore";
 import { Session, useSessionStore } from "../store/sessionStore";
 
 const Signin = () => {
-    console.log("🚀 ~ getApps:", getApps());
+    // Domain store
+    const {
+        domain,
+        databases,
+        selectedDb,
+        setDomain,
+        setDatabases,
+        setSelectedDb,
+        loadStoredData,
+        saveToStorage,
+    } = useDomainStore();
 
-    const [domain, setDomain] = useState("");
+    const [dbDropdownVisible, setDbDropdownVisible] = useState(false);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+    const [dbFetching, setDbFetching] = useState(false);
 
     const addSession = useSessionStore((state) => state.addSession);
-
     const bottomSheetRef = useRef<BottomSheet>(null);
+
+    const databasesList = [
+        "db1",
+        "db2",
+        "db3",
+        "db4",
+        "db5",
+        "db6",
+        "db7",
+        "db8",
+        "db9",
+        "db10",
+    ];
+
+    // Load stored domain + DB
+    useEffect(() => {
+        loadStoredData();
+    }, []);
 
     const LOGIN_URL = `https://${domain}/web/session/authenticate`;
 
     const body = {
-        jesonrpc: "2.0",
+        jsonrpc: "2.0",
         params: {
-            db: "daffodil_ecommerce",
+            db: selectedDb,
             login: email,
             password: password,
         },
@@ -65,14 +93,82 @@ const Signin = () => {
         });
     };
 
+    const fetchDatabaseList = async () => {
+        if (!domain) {
+            // Alert.alert("Error", "Enter domain first");
+            return;
+        }
+
+        if (databases.length > 0) {
+            setDbDropdownVisible(!dbDropdownVisible);
+            return;
+        }
+
+        setDbFetching(true);
+        try {
+            const res = await fetch(`https://${domain}/web/database/list`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    jsonrpc: "2.0",
+                    method: "call",
+                    params: {},
+                }),
+            });
+
+            const data = await res.json();
+            const list = data?.result || [];
+
+            setDatabases(list);
+            setSelectedDb(list[0]);
+            setDbDropdownVisible(true);
+            await saveToStorage();
+        } catch (err) {
+            console.log(err);
+            Alert.alert("Error", "Could not fetch database list");
+        } finally {
+            setDbFetching(false);
+        }
+    };
+
+    // RESTORED FEATURE: Select an existing domain from modal
     const handleSelectSession = async (session: Session) => {
         try {
             setLoading(true);
             bottomSheetRef.current?.close();
-            await setSessionCookie(session);
+
+            // Fill domain & fetch DBs
+            setDomain(session.domain);
+            setDatabases([]); // reset
+            setSelectedDb(null);
+
+            // Fetch database list using new domain
+            const res = await fetch(
+                `https://${session.domain}/web/database/list`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        jsonrpc: "2.0",
+                        method: "call",
+                        params: {},
+                    }),
+                }
+            );
+
+            const data = await res.json();
+            const list = data?.result || [];
+
+            setDatabases(list);
+            setSelectedDb(list[0]);
+
+            await saveToStorage();
+
             navigateToHome(session.baseUrl);
-        } catch (err: any) {
-            Alert.alert("Error", "Could not apply session. Please try again.");
+        } catch (err) {
+            Alert.alert("Error", "Could not load saved session");
         } finally {
             setLoading(false);
         }
@@ -84,55 +180,38 @@ const Signin = () => {
 
             const res = await fetch(LOGIN_URL, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(body),
             });
 
-            if (!res.ok) {
-                throw new Error(`Login failed (${res.status})`);
-            }
+            if (!res.ok) throw new Error(`Login failed (${res.status})`);
 
             const data = await res.json();
             const baseUrl = data?.result?.["web.base.url"];
 
-            // read Set-Cookie header
             const setCookieHeader = res.headers.get("set-cookie") || "";
             const match = setCookieHeader.match(/session_id=([^;]+)/);
             const sessionId = match?.[1];
 
-            if (!sessionId) {
-                throw new Error("session_id not found in Set-Cookie");
-            }
+            if (!sessionId) throw new Error("session_id not found");
 
-            const newSession: Session = { domain, email, sessionId, baseUrl };
+            const newSession: Session = {
+                domain,
+                email,
+                sessionId,
+                baseUrl,
+            };
 
-            // ✅ Save session to Zustand store (which persists to expo secure storage)
             addSession(newSession);
-
-            // ✅ Save cookie in native cookie store for WebView
             await setSessionCookie(newSession);
 
-            // navigate to webview
             navigateToHome(baseUrl);
         } catch (err: any) {
-            console.error(err);
-            Alert.alert("Login error", err.message || "Something went wrong");
+            Alert.alert("Error", err.message);
         } finally {
             setLoading(false);
         }
     };
-
-    useEffect(() => {
-        const init = async () => {
-            // 1) Get current token
-            const token = await getMessaging().getToken();
-            console.log("FCM Token:", token);
-        };
-
-        init();
-    }, []);
 
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
@@ -156,33 +235,100 @@ const Signin = () => {
                             </Text>
                         </View>
 
+                        {/* SECTION 1: DOMAIN SETTINGS */}
                         <View style={styles.formContainer}>
+                            <Text style={styles.sectionTitle}>
+                                Domain Settings
+                            </Text>
+
                             <TextInput
                                 style={styles.input}
                                 placeholder="Domain Name"
                                 value={domain}
-                                onChangeText={setDomain}
+                                onChangeText={(v) => {
+                                    setDomain(v);
+                                    setDatabases([]);
+                                    setSelectedDb(null);
+                                }}
                                 autoCapitalize="none"
                                 placeholderTextColor="#888"
                             />
+
+                            <View>
+                                {/* DB Selector */}
+                                <TouchableOpacity
+                                    activeOpacity={0.9}
+                                    style={styles.input}
+                                    onPress={fetchDatabaseList}
+                                >
+                                    {dbFetching ? (
+                                        <ActivityIndicator color="#333" />
+                                    ) : (
+                                        <Text
+                                            style={{
+                                                color: selectedDb
+                                                    ? "#333"
+                                                    : "#888",
+                                            }}
+                                        >
+                                            {selectedDb || "Select Database"}
+                                        </Text>
+                                    )}
+                                </TouchableOpacity>
+
+                                {dbDropdownVisible && (
+                                    <ScrollView
+                                        style={styles.dropdownBox}
+                                        nestedScrollEnabled={true}
+                                    >
+                                        {databases.map((db) => (
+                                            <TouchableOpacity
+                                                activeOpacity={0.6}
+                                                key={db}
+                                                style={styles.dropdownItem}
+                                                onPress={() => {
+                                                    setSelectedDb(db);
+                                                    setDbDropdownVisible(false);
+                                                    saveToStorage();
+                                                }}
+                                            >
+                                                <Text
+                                                    style={styles.dropdownText}
+                                                >
+                                                    {db}
+                                                </Text>
+                                            </TouchableOpacity>
+                                        ))}
+                                    </ScrollView>
+                                )}
+                            </View>
+                        </View>
+
+                        {/* SECTION 2: USER CREDENTIALS */}
+                        <View style={styles.formContainer}>
+                            <Text style={styles.sectionTitle}>
+                                User Credentials
+                            </Text>
+
                             <TextInput
                                 style={styles.input}
                                 placeholder="User Email"
                                 value={email}
                                 onChangeText={setEmail}
-                                keyboardType="email-address"
                                 autoCapitalize="none"
                                 placeholderTextColor="#888"
                             />
+
                             <View style={styles.passwordContainer}>
                                 <TextInput
                                     style={styles.passwordInput}
                                     placeholder="Password"
+                                    secureTextEntry={!isPasswordVisible}
                                     value={password}
                                     onChangeText={setPassword}
-                                    secureTextEntry={!isPasswordVisible}
                                     placeholderTextColor="#888"
                                 />
+
                                 <TouchableOpacity
                                     onPress={() =>
                                         setIsPasswordVisible(!isPasswordVisible)
@@ -199,6 +345,7 @@ const Signin = () => {
                                     />
                                 </TouchableOpacity>
                             </View>
+
                             <Pressable
                                 onPress={handleLogin}
                                 disabled={loading}
@@ -212,19 +359,23 @@ const Signin = () => {
                                     {loading ? "Logging in..." : "Login"}
                                 </Text>
                             </Pressable>
-                            <TouchableOpacity
-                                activeOpacity={0.6}
-                                style={styles.linkButton}
-                                onPress={() => bottomSheetRef.current?.expand()}
-                            >
-                                <Text style={styles.linkButtonText}>
-                                    Or login to an existing domain
-                                </Text>
-                            </TouchableOpacity>
                         </View>
+
+                        {/* EXISTING SESSION BUTTON */}
+                        <TouchableOpacity
+                            activeOpacity={0.6}
+                            style={styles.linkButton}
+                            onPress={() => bottomSheetRef.current?.expand()}
+                        >
+                            <Text style={styles.linkButtonText}>
+                                Or login to an existing domain
+                            </Text>
+                        </TouchableOpacity>
                     </ScrollView>
                 </KeyboardAvoidingView>
             </LinearGradient>
+
+            {/* RESTORED MODAL HERE */}
             <SessionModal
                 bottomSheetRef={bottomSheetRef}
                 onSelectSession={handleSelectSession}
@@ -234,36 +385,27 @@ const Signin = () => {
 };
 
 export default Signin;
+
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    keyboardAvoidingContainer: {
-        flex: 1,
-    },
+    container: { flex: 1 },
+    keyboardAvoidingContainer: { flex: 1 },
     scrollViewContent: {
         flexGrow: 1,
         justifyContent: "center",
         paddingHorizontal: 20,
     },
-    header: {
-        alignItems: "center",
-        marginBottom: 40,
+    header: { alignItems: "center", marginBottom: 40 },
+    title: { fontSize: 32, fontWeight: "bold", color: "#2c3e50" },
+    subtitle: { fontSize: 16, color: "#34495e", marginTop: 8 },
+    sectionTitle: {
+        fontSize: 18,
+        fontWeight: "700",
+        marginBottom: 10,
+        color: "#2c3e50",
     },
     formContainer: {
         width: "85%",
-        alignItems: "center",
         alignSelf: "center",
-    },
-    title: {
-        fontSize: 32,
-        fontWeight: "bold",
-        color: "#2c3e50",
-    },
-    subtitle: {
-        fontSize: 16,
-        color: "#34495e",
-        marginTop: 8,
     },
     input: {
         width: "100%",
@@ -274,6 +416,7 @@ const styles = StyleSheet.create({
         marginBottom: 15,
         fontSize: 16,
         color: "#333",
+        justifyContent: "center",
     },
     passwordContainer: {
         flexDirection: "row",
@@ -300,23 +443,33 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         marginTop: 10,
     },
-    buttonPressed: {
-        backgroundColor: "#34495e",
+    buttonPressed: { backgroundColor: "#34495e" },
+    buttonDisabled: { backgroundColor: "#95a5a6" },
+    buttonText: { color: "#fff", fontSize: 18, fontWeight: "bold" },
+    dropdownBox: {
+        position: "absolute",
+        top: 50, // Position it right below the input
+        width: "100%",
+        maxHeight: 200, // Set a max height for the dropdown
+        backgroundColor: "white",
+        borderRadius: 8,
+        elevation: 5,
+        zIndex: 10, // Ensure it's on top of other elements
     },
-    buttonDisabled: {
-        backgroundColor: "#95a5a6",
+    dropdownItem: {
+        padding: 12,
+        borderBottomWidth: 1,
+        borderBottomColor: "#eee",
     },
-    buttonText: {
-        color: "#fff",
-        fontSize: 18,
-        fontWeight: "bold",
+    dropdownText: {
+        fontSize: 16,
+        color: "#333",
     },
-    linkButton: {
-        marginTop: 20,
-    },
+    linkButton: { marginTop: 15 },
     linkButtonText: {
         color: "#2c3e50",
         fontSize: 15,
         fontWeight: "500",
+        textAlign: "center",
     },
 });
