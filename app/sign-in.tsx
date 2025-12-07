@@ -167,7 +167,7 @@ const Signin = () => {
 
             await saveToStorage();
 
-            navigateToHome(session.baseUrl);
+            navigateToHome(`${session.baseUrl}/web`);
         } catch (err) {
             Alert.alert("Error", "Could not load saved session");
         } finally {
@@ -209,7 +209,7 @@ const Signin = () => {
             // Register FCM
             registerFCM();
 
-            navigateToHome(baseUrl);
+            navigateToHome(`${baseUrl}/web`);
         } catch (err: any) {
             Alert.alert("Error", err.message);
         } finally {

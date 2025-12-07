@@ -15,7 +15,7 @@ const HomeScreen = () => {
             <SafeAreaView style={styles.container}>
                 <StatusBar style="auto" />
                 <WebView
-                    source={{ uri: `${baseUrl}/web` }}
+                    source={{ uri: `${baseUrl}` }}
                     startInLoadingState
                     renderLoading={() => (
                         <ActivityIndicator style={{ marginTop: 20 }} />
