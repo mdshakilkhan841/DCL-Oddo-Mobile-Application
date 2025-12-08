@@ -1,12 +1,24 @@
-import { getMessaging } from "@react-native-firebase/messaging";
+import { useNotificationHandler } from "@/hooks/useNotificationHandler";
+import {
+    getMessaging,
+    onNotificationOpenedApp,
+} from "@react-native-firebase/messaging";
 import { router, Stack } from "expo-router";
 import { useEffect } from "react";
 import "react-native-gesture-handler";
 
+declare global {
+    var __notificationData: any;
+}
+
 export default function RootLayout() {
+    // Initialize notification handler (handles foreground & press events)
+    useNotificationHandler();
+
     useEffect(() => {
         // 1️⃣ App opened from background
-        const unsubscribe = getMessaging().onNotificationOpenedApp(
+        const unsubscribe = onNotificationOpenedApp(
+            getMessaging(),
             (remoteMessage) => {
                 if (remoteMessage?.data) {
                     handleNotificationNavigation(remoteMessage.data);

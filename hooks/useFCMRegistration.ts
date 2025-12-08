@@ -1,4 +1,9 @@
-import messaging, { getMessaging } from "@react-native-firebase/messaging";
+import messaging, {
+    getMessaging,
+    getToken,
+    onTokenRefresh,
+    requestPermission,
+} from "@react-native-firebase/messaging";
 import * as SecureStore from "expo-secure-store";
 import { PermissionsAndroid, Platform } from "react-native";
 import { getDeviceId } from "./useDeviceId";
@@ -19,7 +24,7 @@ export async function requestUserPermission() {
     }
 
     // iOS uses messaging().requestPermission()
-    const authStatus = await messaging().requestPermission();
+    const authStatus = await requestPermission(getMessaging());
 
     const enabled =
         authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
@@ -45,7 +50,7 @@ export function useFCMRegistration(userId: string | number | null) {
             }
 
             // 2) Get current FCM token
-            const fcmToken = await getMessaging().getToken();
+            const fcmToken = await getToken(getMessaging());
             console.log("FCM Token:", fcmToken);
 
             // 3) Get previous token (from SecureStore)
@@ -77,7 +82,7 @@ export function useFCMRegistration(userId: string | number | null) {
             }
 
             // 6) Listen for token refresh
-            getMessaging().onTokenRefresh(async (newToken) => {
+            onTokenRefresh(getMessaging(), async (newToken) => {
                 console.log("FCM token refreshed:", newToken);
                 const currentDeviceId = await getDeviceId();
 
@@ -95,12 +100,6 @@ export function useFCMRegistration(userId: string | number | null) {
                 });
 
                 await SecureStore.setItemAsync("fcm_token", newToken);
-            });
-
-            // 7) Optional: Foreground listener (just logs for now)
-            getMessaging().onMessage(async (remoteMessage) => {
-                console.log("Foreground message:", remoteMessage);
-                // If you want, you can show an in-app banner or alert here
             });
 
             console.log("✅ FCM registration completed");

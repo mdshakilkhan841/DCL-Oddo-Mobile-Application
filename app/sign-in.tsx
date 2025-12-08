@@ -2,7 +2,7 @@ import { useFCMRegistration } from "@/hooks/useFCMRegistration";
 import { Feather } from "@expo/vector-icons";
 import BottomSheet from "@gorhom/bottom-sheet";
 import CookieManager from "@react-native-cookies/cookies";
-import { getMessaging } from "@react-native-firebase/messaging";
+import { getMessaging, getToken } from "@react-native-firebase/messaging";
 import * as Clipboard from "expo-clipboard";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
@@ -53,7 +53,7 @@ const Signin = () => {
 
     useEffect(() => {
         const initializeAndGetToken = async () => {
-            const fcmToken = await getMessaging().getToken();
+            const fcmToken = await getToken(getMessaging());
             console.log("🚀 ~ initializeAndGetToken ~ fcmToken:", fcmToken);
             setFcmToken(fcmToken);
         };
