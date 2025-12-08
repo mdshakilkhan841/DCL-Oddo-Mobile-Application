@@ -1,5 +1,6 @@
 import { getMessaging, onMessage } from "@react-native-firebase/messaging";
 import * as Notifications from "expo-notifications";
+import { router } from "expo-router";
 import { useEffect } from "react";
 
 // Configure how notifications should behave
@@ -63,9 +64,13 @@ export function useNotificationHandler() {
 
                     // Handle navigation or any action based on notification data
                     const data = response.notification.request.content.data;
-                    if (data?.url) {
+                    if (data?.url && typeof data.url === "string") {
                         // Navigate to the URL
                         console.log("Navigate to:", data.url);
+                        router.navigate({
+                            pathname: "/home",
+                            params: { baseUrl: data.url },
+                        });
                     }
                 }
             );
