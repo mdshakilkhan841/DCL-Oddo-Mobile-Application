@@ -65,7 +65,7 @@ const Signin = () => {
         loadStoredData();
     }, []);
 
-    const LOGIN_URL = `https://${domain}/web/session/authenticate`;
+    const LOGIN_API = `https://${domain}/web/session/authenticate`;
 
     const body = {
         jsonrpc: "2.0",
@@ -179,7 +179,7 @@ const Signin = () => {
         try {
             setLoading(true);
 
-            const res = await fetch(LOGIN_URL, {
+            const res = await fetch(LOGIN_API, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(body),
