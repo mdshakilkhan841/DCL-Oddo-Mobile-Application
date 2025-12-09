@@ -5,6 +5,7 @@ import { createJSONStorage, persist, StateStorage } from "zustand/middleware";
 export interface Session {
     domain: string;
     email: string;
+    user_id: string;
     sessionId: string;
     baseUrl: string;
 }

@@ -45,11 +45,9 @@ const Signin = () => {
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
     const [dbFetching, setDbFetching] = useState(false);
     const [fcmToken, setFcmToken] = useState<string | null>(null);
-
-    const addSession = useSessionStore((state) => state.addSession);
+    const { addSession } = useSessionStore();
     const bottomSheetRef = useRef<BottomSheet>(null);
-    const userId = "123";
-    const { registerFCM } = useFCMRegistration(userId);
+    const { registerFCM } = useFCMRegistration();
 
     useEffect(() => {
         const initializeAndGetToken = async () => {
@@ -58,7 +56,7 @@ const Signin = () => {
             setFcmToken(fcmToken);
         };
         initializeAndGetToken();
-    }, [userId]);
+    }, []);
 
     // Load stored domain + DB
     useEffect(() => {
@@ -189,6 +187,7 @@ const Signin = () => {
 
             const data = await res.json();
             const baseUrl = data?.result?.["web.base.url"];
+            const user_id = data?.result?.uid;
 
             const setCookieHeader = res.headers.get("set-cookie") || "";
             const match = setCookieHeader.match(/session_id=([^;]+)/);
@@ -199,6 +198,7 @@ const Signin = () => {
             const newSession: Session = {
                 domain,
                 email,
+                user_id,
                 sessionId,
                 baseUrl,
             };
@@ -207,7 +207,7 @@ const Signin = () => {
             await setSessionCookie(newSession);
 
             // Register FCM
-            registerFCM();
+            registerFCM(user_id, domain);
 
             navigateToHome(`${baseUrl}/web`);
         } catch (err: any) {

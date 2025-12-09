@@ -1,7 +1,6 @@
 import messaging, {
     getMessaging,
     getToken,
-    onTokenRefresh,
     requestPermission,
 } from "@react-native-firebase/messaging";
 import * as SecureStore from "expo-secure-store";
@@ -33,8 +32,11 @@ export async function requestUserPermission() {
     return enabled;
 }
 
-export function useFCMRegistration(userId: string | number | null) {
-    const registerFCM = async () => {
+export function useFCMRegistration() {
+    const registerFCM = async (
+        userId: string | number | null,
+        domain: string
+    ) => {
         if (!userId) {
             console.log("No userId provided, skipping FCM registration");
             return;
@@ -43,7 +45,6 @@ export function useFCMRegistration(userId: string | number | null) {
         try {
             // 1) Ask for permission
             const enabled = await requestUserPermission();
-
             if (!enabled) {
                 console.log("FCM permission not granted");
                 return;
@@ -51,58 +52,43 @@ export function useFCMRegistration(userId: string | number | null) {
 
             // 2) Get current FCM token
             const fcmToken = await getToken(getMessaging());
-            console.log("FCM Token:", fcmToken);
+            // console.log("FCM Token:", fcmToken);
 
             // 3) Get previous token (from SecureStore)
             const oldToken = await SecureStore.getItemAsync("fcm_token");
 
             // 4) Get stable device_id
             const deviceId = await getDeviceId();
-            console.log("Device ID:", deviceId);
+            // console.log("Device ID:", deviceId);
 
             // 5) Only send to backend if token changed or first time
             if (!oldToken || oldToken !== fcmToken) {
-                console.log("Sending token to backend...");
+                const res = await fetch(
+                    `https://${domain}/firebase/register_token`,
+                    {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            user_id: userId,
+                            device_id: deviceId,
+                            fcm_token: fcmToken,
+                            type: Platform.OS, // "android" / "ios"
+                        }),
+                    }
+                ).then((res) => res.json());
 
-                // TODO: replace with your real API endpoint
-                await fetch("https://your-api.com/device/register/", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        user_id: userId,
-                        device_id: deviceId,
-                        fcm_token: fcmToken,
-                        type: Platform.OS, // "android" / "ios"
-                    }),
-                });
+                console.log("🚀 ~ registerFCM ~ res:", res.message);
+
+                if (!res.ok) {
+                    throw new Error(
+                        `Failed to register token with backend: ${res.status}`
+                    );
+                }
 
                 await SecureStore.setItemAsync("fcm_token", fcmToken);
             }
-
-            // 6) Listen for token refresh
-            onTokenRefresh(getMessaging(), async (newToken) => {
-                console.log("FCM token refreshed:", newToken);
-                const currentDeviceId = await getDeviceId();
-
-                await fetch("https://your-api.com/device/register/", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        user_id: userId,
-                        device_id: currentDeviceId,
-                        fcm_token: newToken,
-                        type: Platform.OS,
-                    }),
-                });
-
-                await SecureStore.setItemAsync("fcm_token", newToken);
-            });
-
-            console.log("✅ FCM registration completed");
         } catch (error) {
             console.log("FCM Registration Error:", error);
         }
