@@ -1,3 +1,4 @@
+import { getDeviceId } from "@/hooks/useDeviceId";
 import { useFCMRegistration } from "@/hooks/useFCMRegistration";
 import { Feather } from "@expo/vector-icons";
 import BottomSheet from "@gorhom/bottom-sheet";
@@ -45,6 +46,8 @@ const Signin = () => {
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
     const [dbFetching, setDbFetching] = useState(false);
     const [fcmToken, setFcmToken] = useState<string | null>(null);
+    const [deviceId, setDeviceId] = useState<string | null>(null);
+
     const { addSession } = useSessionStore();
     const bottomSheetRef = useRef<BottomSheet>(null);
     const { registerFCM } = useFCMRegistration();
@@ -52,8 +55,11 @@ const Signin = () => {
     useEffect(() => {
         const initializeAndGetToken = async () => {
             const fcmToken = await getToken(getMessaging());
+            const deviceId = await getDeviceId();
+            console.log("🚀 ~ initializeAndGetToken ~ deviceId:", deviceId);
             console.log("🚀 ~ initializeAndGetToken ~ fcmToken:", fcmToken);
             setFcmToken(fcmToken);
+            setDeviceId(deviceId);
         };
         initializeAndGetToken();
     }, []);
@@ -248,6 +254,34 @@ const Signin = () => {
                                         onPress={async () => {
                                             await Clipboard.setStringAsync(
                                                 fcmToken
+                                            );
+                                        }}
+                                    >
+                                        <Feather
+                                            name="copy"
+                                            size={18}
+                                            color="#34495e"
+                                        />
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        )}
+                        {/* FCM Token Display */}
+                        {deviceId && (
+                            <View style={styles.fcmContainer}>
+                                <Text style={styles.fcmLabel}>Device ID:</Text>
+                                <View style={styles.fcmTokenWrapper}>
+                                    <Text
+                                        style={styles.fcmTokenText}
+                                        numberOfLines={1}
+                                        ellipsizeMode="middle"
+                                    >
+                                        {deviceId}
+                                    </Text>
+                                    <TouchableOpacity
+                                        onPress={async () => {
+                                            await Clipboard.setStringAsync(
+                                                deviceId
                                             );
                                         }}
                                     >
