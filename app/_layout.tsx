@@ -23,9 +23,6 @@ declare global {
 // Register background handler
 setBackgroundMessageHandler(getMessaging(), async (remoteMessage) => {
     console.log("📩 Background Message Received:");
-    console.log("Title:", remoteMessage.notification?.title);
-    console.log("Body:", remoteMessage.notification?.body);
-    console.log("Data:", remoteMessage.data);
 
     // For background notifications, we need to ensure they are displayed properly
     // Let's try to actively display the notification using expo-notifications
