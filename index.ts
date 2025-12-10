@@ -14,11 +14,13 @@ declare global {
 // Configure background notification behavior
 Notifications.setNotificationHandler({
     handleNotification: async (notification) => {
+        // Always allow notifications to show, even in background
         return {
             shouldPlaySound: true,
             shouldSetBadge: true,
             shouldShowBanner: true,
             shouldShowList: true,
+            priority: Notifications.AndroidNotificationPriority.MAX,
         };
     },
 });
@@ -30,23 +32,10 @@ setBackgroundMessageHandler(getMessaging(), async (remoteMessage) => {
     console.log("Body:", remoteMessage.notification?.body);
     console.log("Data:", remoteMessage.data);
 
-    // Display notification using expo-notifications even in background
-    if (remoteMessage.notification) {
-        try {
-            await Notifications.scheduleNotificationAsync({
-                content: {
-                    title: remoteMessage.notification.title || "Notification",
-                    body: remoteMessage.notification.body || "",
-                    data: remoteMessage.data || {},
-                    sound: "default",
-                    badge: 1,
-                },
-                trigger: null,
-            });
-        } catch (error) {
-            console.log("Error displaying background notification:", error);
-        }
-    }
+    // In background state, Firebase automatically shows the notification
+    // We just need to ensure it has the right priority for heads-up display
+    // The notification will be shown by the native system automatically
+    return Promise.resolve();
 });
 
 // When a notification is tapped while app is in background/killed

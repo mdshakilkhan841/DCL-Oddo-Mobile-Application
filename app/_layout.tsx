@@ -1,5 +1,7 @@
+import { getDeviceId } from "@/hooks/useDeviceId";
 import { useFCMRegistration } from "@/hooks/useFCMRegistration";
 import { useNotificationHandler } from "@/hooks/useNotificationHandler";
+import { useNotificationSetup } from "@/hooks/useNotificationSetup";
 import { useSessionStore } from "@/store/sessionStore";
 import {
     getMessaging,
@@ -7,17 +9,19 @@ import {
     onTokenRefresh,
 } from "@react-native-firebase/messaging";
 import { router, Stack } from "expo-router";
-import { useEffect } from "react";
-import "react-native-gesture-handler";
-import { getDeviceId } from "@/hooks/useDeviceId";
 import * as SecureStore from "expo-secure-store";
+import { useEffect } from "react";
 import { Platform } from "react-native";
+import "react-native-gesture-handler";
 
 declare global {
     var __notificationData: any;
 }
 
 export default function RootLayout() {
+    // Initialize notification setup (channels, permissions)
+    useNotificationSetup();
+
     // Initialize notification handler (handles foreground & press events)
     useNotificationHandler();
     const { sessions } = useSessionStore();
@@ -49,13 +53,8 @@ export default function RootLayout() {
                 // Assuming the last session is the active one
                 const lastSession = sessions[sessions.length - 1];
                 if (lastSession.user_id && lastSession.domain) {
-                    console.log(
-                        "Attempting FCM registration on app start..."
-                    );
-                    await registerFCM(
-                        lastSession.user_id,
-                        lastSession.domain
-                    );
+                    console.log("Attempting FCM registration on app start...");
+                    await registerFCM(lastSession.user_id, lastSession.domain);
                 }
             }
         };
@@ -76,8 +75,7 @@ export default function RootLayout() {
                 );
                 return;
             }
-            const lastSession =
-                currentSessions[currentSessions.length - 1];
+            const lastSession = currentSessions[currentSessions.length - 1];
             const { user_id, domain } = lastSession;
 
             if (!user_id || !domain) {
@@ -112,10 +110,7 @@ export default function RootLayout() {
                 await SecureStore.setItemAsync("fcm_token", newToken);
                 console.log("✅ Refreshed token registered with backend.");
             } catch (error) {
-                console.error(
-                    "Failed to re-register refreshed token:",
-                    error
-                );
+                console.error("Failed to re-register refreshed token:", error);
             }
         });
 

@@ -13,11 +13,13 @@ Notifications.setNotificationHandler({
         });
 
         // Show notification even while app is in foreground
+        // Set high priority for heads-up display
         return {
             shouldPlaySound: true,
             shouldSetBadge: true,
             shouldShowBanner: true,
             shouldShowList: true,
+            priority: Notifications.AndroidNotificationPriority.MAX,
         };
     },
 });
