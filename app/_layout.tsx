@@ -7,7 +7,9 @@ import {
     getMessaging,
     onNotificationOpenedApp,
     onTokenRefresh,
+    setBackgroundMessageHandler,
 } from "@react-native-firebase/messaging";
+import * as Notifications from "expo-notifications";
 import { router, Stack } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { useEffect } from "react";
@@ -17,6 +19,39 @@ import "react-native-gesture-handler";
 declare global {
     var __notificationData: any;
 }
+
+// Register background handler
+setBackgroundMessageHandler(getMessaging(), async (remoteMessage) => {
+    console.log("📩 Background Message Received:");
+    console.log("Title:", remoteMessage.notification?.title);
+    console.log("Body:", remoteMessage.notification?.body);
+    console.log("Data:", remoteMessage.data);
+
+    // For background notifications, we need to ensure they are displayed properly
+    // Let's try to actively display the notification using expo-notifications
+    if (remoteMessage.notification) {
+        try {
+            // Display the notification using expo-notifications
+            await Notifications.scheduleNotificationAsync({
+                content: {
+                    title:
+                        remoteMessage.notification.title || "New Notification",
+                    body: remoteMessage.notification.body || "",
+                    data: remoteMessage.data || {},
+                    sound: "default",
+                    badge: 1,
+                },
+                trigger: null, // Show immediately
+            });
+            console.log("✅ Background notification displayed successfully");
+        } catch (error) {
+            console.log("❌ Error displaying background notification:", error);
+            // Fallback: Let Firebase display the notification automatically
+        }
+    }
+
+    return Promise.resolve();
+});
 
 export default function RootLayout() {
     // Initialize notification setup (channels, permissions)
