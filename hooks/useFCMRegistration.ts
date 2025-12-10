@@ -1,39 +1,15 @@
-import messaging, {
-    getMessaging,
-    getToken,
-    requestPermission,
-} from "@react-native-firebase/messaging";
+import { getMessaging, getToken } from "@react-native-firebase/messaging";
+import * as Notifications from "expo-notifications";
 import * as SecureStore from "expo-secure-store";
-import { PermissionsAndroid, Platform } from "react-native";
+import { Platform } from "react-native";
 import { getDeviceId } from "./useDeviceId";
 
-export async function requestUserPermission() {
-    if (Platform.OS === "android") {
-        if (Platform.Version < 33) {
-             return true;
-        }
+async function checkPermission(): Promise<boolean> {
+    const { status } = await Notifications.getPermissionsAsync();
+    if (status === "granted") return true;
 
-        // Android 13+ requires POST_NOTIFICATIONS
-        const granted = await PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
-        );
-
-        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-            console.log("POST_NOTIFICATIONS permission denied");
-            return false;
-        }
-
-        return true;
-    }
-
-    // iOS uses messaging().requestPermission()
-    const authStatus = await requestPermission(getMessaging());
-
-    const enabled =
-        authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-        authStatus === messaging.AuthorizationStatus.PROVISIONAL;
-
-    return enabled;
+    const { status: newStatus } = await Notifications.requestPermissionsAsync();
+    return newStatus === "granted";
 }
 
 export function useFCMRegistration() {
@@ -47,8 +23,8 @@ export function useFCMRegistration() {
         }
 
         try {
-            // 1) Ask for permission
-            const enabled = await requestUserPermission();
+            // 1) Ensure permission is granted
+            const enabled = await checkPermission();
             if (!enabled) {
                 console.log("FCM permission not granted");
                 return;
