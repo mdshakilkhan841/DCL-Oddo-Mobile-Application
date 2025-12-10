@@ -9,6 +9,10 @@ import { getDeviceId } from "./useDeviceId";
 
 export async function requestUserPermission() {
     if (Platform.OS === "android") {
+        if (Platform.Version < 33) {
+             return true;
+        }
+
         // Android 13+ requires POST_NOTIFICATIONS
         const granted = await PermissionsAndroid.request(
             PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
@@ -80,12 +84,6 @@ export function useFCMRegistration() {
                 ).then((res) => res.json());
 
                 console.log("🚀 ~ registerFCM ~ res:", res.message);
-
-                if (!res.ok) {
-                    throw new Error(
-                        `Failed to register token with backend: ${res.status}`
-                    );
-                }
 
                 await SecureStore.setItemAsync("fcm_token", fcmToken);
             }
