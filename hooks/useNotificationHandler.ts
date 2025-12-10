@@ -6,12 +6,6 @@ import { useEffect } from "react";
 // Configure how notifications should behave
 Notifications.setNotificationHandler({
     handleNotification: async (notification) => {
-        console.log("🔔 Notification received:", {
-            title: notification.request.content.title,
-            body: notification.request.content.body,
-            data: notification.request.content.data,
-        });
-
         // Show notification even while app is in foreground
         // Set high priority for heads-up display
         return {
