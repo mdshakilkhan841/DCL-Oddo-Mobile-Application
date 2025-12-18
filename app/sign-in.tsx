@@ -1,10 +1,7 @@
-import { getDeviceId } from "@/hooks/useDeviceId";
 import { useFCMRegistration } from "@/hooks/useFCMRegistration";
 import { Feather } from "@expo/vector-icons";
 import BottomSheet from "@gorhom/bottom-sheet";
 import CookieManager from "@react-native-cookies/cookies";
-import { getMessaging, getToken } from "@react-native-firebase/messaging";
-import * as Clipboard from "expo-clipboard";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -52,17 +49,18 @@ const Signin = () => {
     const bottomSheetRef = useRef<BottomSheet>(null);
     const { registerFCM } = useFCMRegistration();
 
-    useEffect(() => {
-        const initializeAndGetToken = async () => {
-            const fcmToken = await getToken(getMessaging());
-            const deviceId = await getDeviceId();
-            console.log("🚀 ~ initializeAndGetToken ~ deviceId:", deviceId);
-            console.log("🚀 ~ initializeAndGetToken ~ fcmToken:", fcmToken);
-            setFcmToken(fcmToken);
-            setDeviceId(deviceId);
-        };
-        initializeAndGetToken();
-    }, []);
+    // useEffect(() => {
+    //     const initializeAndGetToken = async () => {
+    //         const messaging = getMessaging();
+    //         const fcmToken = await getToken(messaging);
+    //         const deviceId = await getDeviceId();
+    //         console.log("🚀 ~ initializeAndGetToken ~ deviceId:", deviceId);
+    //         console.log("🚀 ~ initializeAndGetToken ~ fcmToken:", fcmToken);
+    //         setFcmToken(fcmToken);
+    //         setDeviceId(deviceId);
+    //     };
+    //     initializeAndGetToken();
+    // }, []);
 
     // Load stored domain + DB
     useEffect(() => {
@@ -239,7 +237,7 @@ const Signin = () => {
                         showsVerticalScrollIndicator={false}
                     >
                         {/* FCM Token Display */}
-                        {fcmToken && (
+                        {/* {fcmToken && (
                             <View style={styles.fcmContainer}>
                                 <Text style={styles.fcmLabel}>FCM Token:</Text>
                                 <View style={styles.fcmTokenWrapper}>
@@ -265,9 +263,9 @@ const Signin = () => {
                                     </TouchableOpacity>
                                 </View>
                             </View>
-                        )}
+                        )} */}
                         {/* FCM Token Display */}
-                        {deviceId && (
+                        {/* {deviceId && (
                             <View style={styles.fcmContainer}>
                                 <Text style={styles.fcmLabel}>Device ID:</Text>
                                 <View style={styles.fcmTokenWrapper}>
@@ -293,7 +291,7 @@ const Signin = () => {
                                     </TouchableOpacity>
                                 </View>
                             </View>
-                        )}
+                        )} */}
 
                         <View style={styles.header}>
                             <Text style={styles.title}>Welcome Back!</Text>
