@@ -22,33 +22,39 @@ declare global {
 
 // Register background handler
 setBackgroundMessageHandler(getMessaging(), async (remoteMessage) => {
-    console.log("📩 Background Message Received:");
+    // console.log("📩 Background Message Received:");
+    // console.log("Title:", remoteMessage.notification?.title);
+    // console.log("Body:", remoteMessage.notification?.body);
+    // console.log("Data:", remoteMessage.data);
 
-    // For background notifications, we need to ensure they are displayed properly
-    // Let's try to actively display the notification using expo-notifications
-    if (remoteMessage.notification) {
-        try {
-            // Display the notification using expo-notifications
-            await Notifications.scheduleNotificationAsync({
-                content: {
-                    title:
-                        remoteMessage.notification.title || "New Notification",
-                    body: remoteMessage.notification.body || "",
-                    data: remoteMessage.data || {},
-                    sound: "default",
-                    badge: 1,
-                },
-                trigger: null, // Show immediately
-            });
-            console.log("✅ Background notification displayed successfully");
-        } catch (error) {
-            console.log("❌ Error displaying background notification:", error);
-            // Fallback: Let Firebase display the notification automatically
-        }
+    // Since backend sends data-only messages, we need to display the notification using Expo
+    // Extract title and body from data if not in notification
+    const title = String(
+        remoteMessage.data?.title || remoteMessage.notification?.title || ""
+    );
+    const body = String(
+        remoteMessage.data?.body || remoteMessage.notification?.body || ""
+    );
+
+    try {
+        await Notifications.scheduleNotificationAsync({
+            content: {
+                title,
+                body,
+                data: remoteMessage.data || {},
+                sound: "default",
+                badge: 1,
+            },
+            trigger: null, // Show immediately
+        });
+        // console.log("✅ Background notification displayed successfully");
+    } catch (error) {
+        console.log("❌ Error displaying background notification:", error);
     }
-
-    return Promise.resolve();
 });
+
+//     return Promise.resolve();
+// });
 
 export default function RootLayout() {
     // Initialize notification setup (channels, permissions)
@@ -85,7 +91,7 @@ export default function RootLayout() {
                 // Assuming the last session is the active one
                 const lastSession = sessions[sessions.length - 1];
                 if (lastSession.user_id && lastSession.domain) {
-                    console.log("Attempting FCM registration on app start...");
+                    // console.log("Attempting FCM registration on app start...");
                     await registerFCM(lastSession.user_id, lastSession.domain);
                 }
             }
@@ -97,7 +103,7 @@ export default function RootLayout() {
     // Effect for handling token refresh
     useEffect(() => {
         const unsubscribe = onTokenRefresh(getMessaging(), async (newToken) => {
-            console.log("FCM token refreshed:", newToken);
+            // console.log("FCM token refreshed:", newToken);
 
             // We need user_id and domain. Get them from the store.
             const currentSessions = useSessionStore.getState().sessions;
@@ -140,7 +146,7 @@ export default function RootLayout() {
                 }
 
                 await SecureStore.setItemAsync("fcm_token", newToken);
-                console.log("✅ Refreshed token registered with backend.");
+                // console.log("✅ Refreshed token registered with backend.");
             } catch (error) {
                 console.error("Failed to re-register refreshed token:", error);
             }
@@ -152,7 +158,7 @@ export default function RootLayout() {
     }, []); // Run only once
 
     const handleNotificationNavigation = (data: any) => {
-        console.log("🔀 Navigating using notification data:", data);
+        // console.log("🔀 Navigating using notification data:", data);
 
         // Example: Odoo URL passed from backend
         if (data.url) {

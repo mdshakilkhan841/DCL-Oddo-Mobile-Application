@@ -56,8 +56,8 @@
 │                                        │
 ├─ APP IS IN BACKGROUND                 │
 │  └─ Triggers setBackgroundMessageHandler()
-│     └─ Displays notification in tray   │
-│     └─ Logs when received              │
+│     └─ Displays banner notification      │
+│     └─ Logs when received               │
 │                                        │
 ├─ APP IS KILLED/QUIT                   │
 │  └─ Stores data in global.__notificationData
@@ -120,21 +120,21 @@ Notification Data: {url: "https://...", id: "123"}
 
 ### 📝 Backend Notification Format (Example)
 
-Your backend should send notifications like:
+Your backend should send notifications with **data payload only** (no notification payload) to allow Expo to handle display consistently:
 
 ```json
 {
-    "notification": {
-        "title": "Task Updated",
-        "body": "Your task has been assigned"
-    },
     "data": {
+        "title": "Task Updated",
+        "body": "Your task has been assigned",
         "url": "https://your-domain.odoo.com/web",
         "type": "task",
         "task_id": "123"
     }
 }
 ```
+
+This ensures notifications show as banners/heads-up in both foreground and background states.
 
 ### 🎨 Android Heads-Up Notification (Banner)
 

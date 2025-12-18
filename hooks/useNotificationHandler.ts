@@ -24,27 +24,40 @@ export function useNotificationHandler() {
         const unsubscribeForeground = onMessage(
             getMessaging(),
             async (remoteMessage) => {
-                console.log("📱 Foreground Message Received:", {
-                    title: remoteMessage.notification?.title,
-                    body: remoteMessage.notification?.body,
-                    data: remoteMessage.data,
-                });
+                // console.log("📱 Foreground Message Received:", {
+                //     title:
+                //         remoteMessage.data?.title ||
+                //         remoteMessage.notification?.title,
+                //     body:
+                //         remoteMessage.data?.body ||
+                //         remoteMessage.notification?.body,
+                //     data: remoteMessage.data,
+                // });
 
                 // Display using expo-notifications for heads-up banner
-                if (remoteMessage.notification) {
-                    await Notifications.scheduleNotificationAsync({
-                        content: {
-                            title:
-                                remoteMessage.notification.title ||
-                                "Notification",
-                            body: remoteMessage.notification.body || "",
-                            data: remoteMessage.data || {},
-                            sound: "default",
-                            badge: 1,
-                        },
-                        trigger: null, // Show immediately
-                    });
-                }
+                // Use data payload for title/body to be consistent
+
+                const title = String(
+                    remoteMessage.data?.title ||
+                        remoteMessage.notification?.title ||
+                        ""
+                );
+                const body = String(
+                    remoteMessage.data?.body ||
+                        remoteMessage.notification?.body ||
+                        ""
+                );
+
+                await Notifications.scheduleNotificationAsync({
+                    content: {
+                        title,
+                        body,
+                        data: remoteMessage.data || {},
+                        sound: "default",
+                        badge: 1,
+                    },
+                    trigger: null, // Show immediately
+                });
             }
         );
 
@@ -52,17 +65,17 @@ export function useNotificationHandler() {
         const unsubscribeNotificationResponse =
             Notifications.addNotificationResponseReceivedListener(
                 (response) => {
-                    console.log("👆 Notification Pressed:");
-                    console.log(
-                        "Notification Data:",
-                        response.notification.request.content.data
-                    );
+                    // console.log("👆 Notification Pressed:");
+                    // console.log(
+                    //     "Notification Data:",
+                    //     response.notification.request.content.data
+                    // );
 
                     // Handle navigation or any action based on notification data
                     const data = response.notification.request.content.data;
                     if (data?.url && typeof data.url === "string") {
                         // Navigate to the URL
-                        console.log("Navigate to:", data.url);
+                        // console.log("Navigate to:", data.url);
                         router.navigate({
                             pathname: "/home",
                             params: { baseUrl: data.url },
