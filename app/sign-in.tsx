@@ -339,6 +339,17 @@ const Signin = () => {
                         )}
                     </View>
 
+                    <Pressable
+                        // onPress={handleNext}
+                        style={({ pressed }) => [
+                            styles.nextButton,
+                            pressed && styles.loginButtonPressed,
+                            loading && styles.loginButtonDisabled,
+                        ]}
+                    >
+                        <Text style={styles.loginButtonText}>Next</Text>
+                    </Pressable>
+
                     {/* LOGIN CARD */}
                     <View style={[styles.card, { backgroundColor: "#FFFF" }]}>
                         <View
@@ -389,7 +400,7 @@ const Signin = () => {
 
                             <Pressable
                                 onPress={handleLogin}
-                                disabled={loading}
+                                disabled={loading || !email || !password}
                                 style={({ pressed }) => [
                                     styles.loginButton,
                                     pressed && styles.loginButtonPressed,
@@ -586,6 +597,16 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
         borderBottomColor: "#ddd",
         marginBottom: 20,
+    },
+    nextButton: {
+        backgroundColor: "#000783",
+        height: 40,
+        width: 140,
+        alignSelf: "center",
+        borderRadius: 6,
+        flexDirection: "row",
+        justifyContent: "center",
+        alignItems: "center",
     },
     loginButton: {
         backgroundColor: "#000783",
