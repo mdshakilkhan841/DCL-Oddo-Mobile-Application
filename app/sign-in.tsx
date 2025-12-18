@@ -277,15 +277,18 @@ const Signin = () => {
                                     style={styles.input}
                                     onPress={fetchDatabaseList}
                                     activeOpacity={0.6}
+                                    disabled={!domain}
                                 >
                                     <View style={styles.dbInputContainer}>
                                         {dbFetching ? (
                                             <ActivityIndicator />
                                         ) : (
-                                            <Text>
-                                                {selectedDb ||
-                                                    "Select Database"}
-                                            </Text>
+                                            <TextInput
+                                                editable={false}
+                                                placeholder="Select Database"
+                                            >
+                                                {selectedDb}
+                                            </TextInput>
                                         )}
                                         <Feather
                                             name={
@@ -322,16 +325,18 @@ const Signin = () => {
                             </View>
                         </View>
 
-                        <View style={styles.successBox}>
-                            <Feather
-                                name="check-circle"
-                                size={18}
-                                color="#1e7f3c"
-                            />
-                            <Text style={styles.successText}>
-                                Domain is active and connected
-                            </Text>
-                        </View>
+                        {databases.length > 0 && selectedDb && (
+                            <View style={styles.successBox}>
+                                <Feather
+                                    name="check-circle"
+                                    size={18}
+                                    color="#1e7f3c"
+                                />
+                                <Text style={styles.successText}>
+                                    Domain is active and database selected
+                                </Text>
+                            </View>
+                        )}
                     </View>
 
                     {/* LOGIN CARD */}
