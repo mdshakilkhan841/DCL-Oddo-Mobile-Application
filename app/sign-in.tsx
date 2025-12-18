@@ -1,5 +1,10 @@
 import { useFCMRegistration } from "@/hooks/useFCMRegistration";
-import { Feather, FontAwesome5 } from "@expo/vector-icons";
+import {
+    AntDesign,
+    Feather,
+    FontAwesome5,
+    MaterialIcons,
+} from "@expo/vector-icons";
 import BottomSheet from "@gorhom/bottom-sheet";
 import CookieManager from "@react-native-cookies/cookies";
 import { router } from "expo-router";
@@ -220,7 +225,12 @@ const Signin = () => {
                     showsVerticalScrollIndicator={false}
                 >
                     {/* DOMAIN CARD */}
-                    <View style={styles.card}>
+                    <View
+                        style={[
+                            styles.card,
+                            { padding: 16, backgroundColor: "#EFF2FF" },
+                        ]}
+                    >
                         <View
                             style={{
                                 flexDirection: "row",
@@ -325,49 +335,107 @@ const Signin = () => {
                     </View>
 
                     {/* LOGIN CARD */}
-                    <View style={styles.card}>
-                        <Text style={styles.cardTitle}>Login Panel</Text>
-
-                        <TextInput
-                            style={styles.textInputStyle}
-                            placeholder="User ID"
-                            value={email}
-                            onChangeText={setEmail}
-                        />
-
-                        <View style={styles.passwordBox}>
-                            <TextInput
-                                style={{ flex: 1, paddingVertical: 8 }}
-                                placeholder="Password"
-                                secureTextEntry={!isPasswordVisible}
-                                value={password}
-                                onChangeText={setPassword}
-                            />
-                            <TouchableOpacity
-                                onPress={() =>
-                                    setIsPasswordVisible(!isPasswordVisible)
-                                }
+                    <View style={[styles.card, { backgroundColor: "#FFFF" }]}>
+                        <View
+                            style={{
+                                padding: 16,
+                                gap: 16,
+                            }}
+                        >
+                            <Text
+                                style={[
+                                    styles.cardTitle,
+                                    { textAlign: "center" },
+                                ]}
                             >
-                                <Feather
-                                    name={isPasswordVisible ? "eye-off" : "eye"}
-                                    size={18}
+                                Login Panel
+                            </Text>
+
+                            <TextInput
+                                style={styles.textInputStyle}
+                                placeholder="User ID"
+                                value={email}
+                                onChangeText={setEmail}
+                            />
+
+                            <View style={styles.passwordBox}>
+                                <TextInput
+                                    style={{ flex: 1, paddingVertical: 8 }}
+                                    placeholder="Password"
+                                    secureTextEntry={!isPasswordVisible}
+                                    value={password}
+                                    onChangeText={setPassword}
                                 />
-                            </TouchableOpacity>
+                                <TouchableOpacity
+                                    onPress={() =>
+                                        setIsPasswordVisible(!isPasswordVisible)
+                                    }
+                                >
+                                    <Feather
+                                        name={
+                                            isPasswordVisible
+                                                ? "eye-off"
+                                                : "eye"
+                                        }
+                                        size={18}
+                                    />
+                                </TouchableOpacity>
+                            </View>
+
+                            <Pressable
+                                onPress={handleLogin}
+                                disabled={loading}
+                                style={({ pressed }) => [
+                                    styles.loginButton,
+                                    pressed && styles.loginButtonPressed,
+                                    loading && styles.loginButtonDisabled,
+                                ]}
+                            >
+                                <MaterialIcons
+                                    name="login"
+                                    size={24}
+                                    color="#fff"
+                                />
+                                <Text style={styles.loginButtonText}>
+                                    {loading ? "Logging in..." : "Login"}
+                                </Text>
+                            </Pressable>
                         </View>
 
-                        <Pressable
-                            style={styles.loginButton}
-                            onPress={handleLogin}
-                        >
-                            <Text style={styles.loginButtonText}>
-                                {loading ? "Logging in..." : "Login"}
+                        <View style={{ marginTop: 12 }}>
+                            <View
+                                style={{
+                                    height: 1,
+                                    width: "100%",
+                                    backgroundColor: "#696969",
+                                }}
+                            />
+                            <Text
+                                style={{
+                                    textAlign: "center",
+                                    color: "#696969",
+                                    width: 140,
+                                    alignSelf: "center",
+                                    backgroundColor: "#FFF",
+                                    paddingHorizontal: 8,
+                                    position: "absolute",
+                                    top: -18,
+                                }}
+                            >
+                                Need log info for a different domain?
                             </Text>
-                        </Pressable>
+                        </View>
 
                         <TouchableOpacity
                             style={styles.domainLogsBtn}
                             onPress={() => bottomSheetRef.current?.expand()}
+                            activeOpacity={0.6}
                         >
+                            <AntDesign
+                                name="unordered-list"
+                                size={20}
+                                color="#000783"
+                            />
                             <Text style={styles.domainLogsText}>
                                 Domain Logs
                             </Text>
@@ -426,10 +494,8 @@ const styles = StyleSheet.create({
         paddingBottom: 40,
     },
     card: {
-        backgroundColor: "#EFF2FF",
         marginHorizontal: 20,
         marginBottom: 20,
-        padding: 16,
         borderRadius: 14,
         elevation: 2,
         gap: 16,
@@ -517,27 +583,44 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     loginButton: {
-        backgroundColor: "#0a1fa8",
+        backgroundColor: "#000783",
         height: 44,
         borderRadius: 8,
+        flexDirection: "row",
+        gap: 10,
         justifyContent: "center",
         alignItems: "center",
+    },
+    loginButtonPressed: {
+        backgroundColor: "#00056a", // A slightly darker shade for the pressed state
+    },
+    loginButtonDisabled: {
+        backgroundColor: "#a9b0e0", // Lighter, disabled version of the main color
     },
     loginButtonText: {
         color: "#fff",
         fontWeight: "600",
     },
     domainLogsBtn: {
-        marginTop: 14,
+        margin: 16,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 10,
+        justifyContent: "center",
+        borderWidth: 1,
+        borderColor: "#000783",
+        paddingVertical: 8,
+        borderRadius: 8,
+        width: 150,
         alignSelf: "center",
     },
     domainLogsText: {
-        color: "#0a1fa8",
+        color: "#000783",
         fontWeight: "600",
     },
     footerText: {
         textAlign: "center",
-        color: "#999",
+        color: "#696969",
         marginTop: 10,
     },
 });
