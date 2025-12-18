@@ -9,7 +9,6 @@ import {
     onTokenRefresh,
     setBackgroundMessageHandler,
 } from "@react-native-firebase/messaging";
-import * as Notifications from "expo-notifications";
 import { router, Stack } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { useEffect } from "react";
@@ -26,31 +25,30 @@ setBackgroundMessageHandler(getMessaging(), async (remoteMessage) => {
     // console.log("Title:", remoteMessage.notification?.title);
     // console.log("Body:", remoteMessage.notification?.body);
     // console.log("Data:", remoteMessage.data);
-
     // Since backend sends data-only messages, we need to display the notification using Expo
     // Extract title and body from data if not in notification
-    const title = String(
-        remoteMessage.data?.title || remoteMessage.notification?.title || ""
-    );
-    const body = String(
-        remoteMessage.data?.body || remoteMessage.notification?.body || ""
-    );
-
-    try {
-        await Notifications.scheduleNotificationAsync({
-            content: {
-                title,
-                body,
-                data: remoteMessage.data || {},
-                sound: "default",
-                badge: 1,
-            },
-            trigger: null, // Show immediately
-        });
-        // console.log("✅ Background notification displayed successfully");
-    } catch (error) {
-        console.log("❌ Error displaying background notification:", error);
-    }
+    // const title = String(
+    //     remoteMessage.data?.title || remoteMessage.notification?.title || ""
+    // );
+    // const body = String(
+    //     remoteMessage.data?.body || remoteMessage.notification?.body || ""
+    // );
+    // try {
+    //     await Notifications.scheduleNotificationAsync({
+    //         content: {
+    //             title,
+    //             body,
+    //             data: remoteMessage.data || {},
+    //             sound: "default",
+    //             badge: 1,
+    //         },
+    //         trigger: null, // Show immediately
+    //     });
+    //     // console.log("✅ Background notification displayed successfully");
+    // } catch (error) {
+    //     console.log("❌ Error displaying background notification:", error);
+    // }
+    return Promise.resolve();
 });
 
 //     return Promise.resolve();
