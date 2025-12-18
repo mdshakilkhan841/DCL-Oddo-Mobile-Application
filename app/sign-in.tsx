@@ -47,6 +47,7 @@ const Signin = () => {
     const [loading, setLoading] = useState(false);
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
     const [dbFetching, setDbFetching] = useState(false);
+    const [showLoginPanel, setShowLoginPanel] = useState(false);
 
     const { addSession } = useSessionStore();
     const bottomSheetRef = useRef<BottomSheet>(null);
@@ -197,8 +198,8 @@ const Signin = () => {
     };
 
     return (
-        <GestureHandlerRootView style={{ flex: 1 }}>
-            <StatusBar style="light" />
+        <GestureHandlerRootView style={styles.container}>
+            <StatusBar style="light" backgroundColor="#000783" />
 
             {/* HEADER */}
             <View style={styles.header}>
@@ -221,245 +222,352 @@ const Signin = () => {
                 style={{ flex: 1 }}
             >
                 <ScrollView
-                    contentContainerStyle={styles.content}
+                    contentContainerStyle={styles.scrollContent}
                     showsVerticalScrollIndicator={false}
                 >
-                    {/* DOMAIN CARD */}
-                    <View
-                        style={[
-                            styles.card,
-                            { padding: 16, backgroundColor: "#EFF2FF" },
-                        ]}
-                    >
-                        <View
-                            style={{
-                                flexDirection: "row",
-                                alignItems: "center",
-                                gap: 16,
-                            }}
-                        >
-                            <View style={styles.logoContainer}>
-                                <FontAwesome5
-                                    name="globe"
-                                    size={24}
-                                    color="#000783"
-                                />
-                            </View>
-                            <View>
-                                <Text style={styles.cardTitle}>
-                                    Domain Information
-                                </Text>
-                                <Text style={styles.cardSubtitle}>
-                                    Connected to your workspace
-                                </Text>
-                            </View>
-                        </View>
-                        <View style={[styles.inputContainer, { zIndex: 1 }]}>
-                            <View>
-                                <Text style={styles.inputLabel}>
-                                    Domain Name
-                                </Text>
-                                <TextInput
-                                    style={styles.textInputStyle}
-                                    placeholder="Domain"
-                                    value={domain}
-                                    onChangeText={(v) => {
-                                        setDomain(v);
-                                        setDatabases([]);
-                                        setSelectedDb(null);
-                                    }}
-                                />
-                            </View>
-
-                            <View>
-                                <Text style={styles.inputLabel}>Database</Text>
-                                <TouchableOpacity
-                                    style={styles.input}
-                                    onPress={fetchDatabaseList}
-                                    activeOpacity={0.6}
-                                    disabled={!domain}
-                                >
-                                    <View style={styles.dbInputContainer}>
-                                        {dbFetching ? (
-                                            <ActivityIndicator />
-                                        ) : (
-                                            <TextInput
-                                                editable={false}
-                                                placeholder="Select Database"
-                                            >
-                                                {selectedDb}
-                                            </TextInput>
-                                        )}
-                                        <Feather
-                                            name={
-                                                dbDropdownVisible
-                                                    ? "chevron-up"
-                                                    : "chevron-down"
-                                            }
-                                            size={20}
-                                            color="#666"
-                                        />
-                                    </View>
-                                </TouchableOpacity>
-                                {dbDropdownVisible && (
-                                    <ScrollView
-                                        style={styles.dropdownBox}
-                                        nestedScrollEnabled
-                                    >
-                                        {databases.map((db) => (
-                                            <TouchableOpacity
-                                                activeOpacity={0.6}
-                                                key={db}
-                                                style={styles.dropdownItem}
-                                                onPress={() => {
-                                                    setSelectedDb(db);
-                                                    setDbDropdownVisible(false);
-                                                    saveToStorage();
-                                                }}
-                                            >
-                                                <Text>{db}</Text>
-                                            </TouchableOpacity>
-                                        ))}
-                                    </ScrollView>
-                                )}
-                            </View>
-                        </View>
-
-                        {databases.length > 0 && selectedDb && (
-                            <View style={styles.successBox}>
-                                <Feather
-                                    name="check-circle"
-                                    size={18}
-                                    color="#1e7f3c"
-                                />
-                                <Text style={styles.successText}>
-                                    Domain is active and database selected
-                                </Text>
-                            </View>
-                        )}
-                    </View>
-
-                    <Pressable
-                        // onPress={handleNext}
-                        style={({ pressed }) => [
-                            styles.nextButton,
-                            pressed && styles.loginButtonPressed,
-                            loading && styles.loginButtonDisabled,
-                        ]}
-                    >
-                        <Text style={styles.loginButtonText}>Next</Text>
-                    </Pressable>
-
-                    {/* LOGIN CARD */}
-                    <View style={[styles.card, { backgroundColor: "#FFFF" }]}>
-                        <View
-                            style={{
-                                padding: 16,
-                                gap: 16,
-                            }}
-                        >
-                            <Text
-                                style={[
-                                    styles.cardTitle,
-                                    { textAlign: "center" },
-                                ]}
-                            >
-                                Login Panel
-                            </Text>
-
-                            <TextInput
-                                style={styles.textInputStyle}
-                                placeholder="User ID"
-                                value={email}
-                                onChangeText={setEmail}
-                            />
-
-                            <View style={styles.passwordBox}>
-                                <TextInput
-                                    style={{ flex: 1, paddingVertical: 8 }}
-                                    placeholder="Password"
-                                    secureTextEntry={!isPasswordVisible}
-                                    value={password}
-                                    onChangeText={setPassword}
-                                />
-                                <TouchableOpacity
-                                    onPress={() =>
-                                        setIsPasswordVisible(!isPasswordVisible)
-                                    }
-                                >
-                                    <Feather
-                                        name={
-                                            isPasswordVisible
-                                                ? "eye-off"
-                                                : "eye"
-                                        }
-                                        size={18}
-                                    />
-                                </TouchableOpacity>
-                            </View>
-
-                            <Pressable
-                                onPress={handleLogin}
-                                disabled={loading || !email || !password}
-                                style={({ pressed }) => [
-                                    styles.loginButton,
-                                    pressed && styles.loginButtonPressed,
-                                    loading && styles.loginButtonDisabled,
-                                ]}
-                            >
-                                <MaterialIcons
-                                    name="login"
-                                    size={24}
-                                    color="#fff"
-                                />
-                                <Text style={styles.loginButtonText}>
-                                    {loading ? "Logging in..." : "Login"}
-                                </Text>
-                            </Pressable>
-                        </View>
-
-                        <View style={{ marginTop: 12 }}>
+                    {!showLoginPanel ? (
+                        <>
                             <View
-                                style={{
-                                    height: 1,
-                                    width: "100%",
-                                    backgroundColor: "#696969",
-                                }}
-                            />
-                            <Text
-                                style={{
-                                    textAlign: "center",
-                                    color: "#696969",
-                                    width: 140,
-                                    alignSelf: "center",
-                                    backgroundColor: "#FFF",
-                                    paddingHorizontal: 8,
-                                    position: "absolute",
-                                    top: -18,
-                                }}
+                                style={[
+                                    styles.card,
+                                    {
+                                        backgroundColor: "#EFF2FF",
+                                    },
+                                ]}
                             >
-                                Need log info for a different domain?
-                            </Text>
-                        </View>
+                                <View
+                                    style={{
+                                        padding: 16,
+                                        gap: 16,
+                                    }}
+                                >
+                                    <View
+                                        style={{
+                                            flexDirection: "row",
+                                            alignItems: "center",
+                                            gap: 16,
+                                        }}
+                                    >
+                                        <View style={styles.logoContainer}>
+                                            <FontAwesome5
+                                                name="globe"
+                                                size={24}
+                                                color="#000783"
+                                            />
+                                        </View>
+                                        <View>
+                                            <Text style={styles.cardTitle}>
+                                                Domain Information
+                                            </Text>
+                                            <Text style={styles.cardSubtitle}>
+                                                Connected to your workspace
+                                            </Text>
+                                        </View>
+                                    </View>
+                                    <View
+                                        style={[
+                                            styles.inputContainer,
+                                            { zIndex: 10 },
+                                        ]}
+                                    >
+                                        <View>
+                                            <Text style={styles.inputLabel}>
+                                                Domain Name
+                                            </Text>
+                                            <TextInput
+                                                style={styles.textInputStyle}
+                                                placeholder="Domain"
+                                                value={domain}
+                                                onChangeText={(v) => {
+                                                    setDomain(v);
+                                                    setDatabases([]);
+                                                    setSelectedDb(null);
+                                                }}
+                                            />
+                                        </View>
 
-                        <TouchableOpacity
-                            style={styles.domainLogsBtn}
-                            onPress={() => bottomSheetRef.current?.expand()}
-                            activeOpacity={0.6}
-                        >
-                            <AntDesign
-                                name="unordered-list"
-                                size={20}
-                                color="#000783"
-                            />
-                            <Text style={styles.domainLogsText}>
-                                Domain Logs
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
+                                        <View>
+                                            <Text style={styles.inputLabel}>
+                                                Database
+                                            </Text>
+                                            <TouchableOpacity
+                                                style={styles.input}
+                                                onPress={fetchDatabaseList}
+                                                activeOpacity={0.6}
+                                                disabled={!domain}
+                                            >
+                                                <View
+                                                    style={
+                                                        styles.dbInputContainer
+                                                    }
+                                                >
+                                                    {dbFetching ? (
+                                                        <ActivityIndicator />
+                                                    ) : (
+                                                        <TextInput
+                                                            editable={false}
+                                                            placeholder="Select Database"
+                                                        >
+                                                            {selectedDb}
+                                                        </TextInput>
+                                                    )}
+                                                    <Feather
+                                                        name={
+                                                            dbDropdownVisible
+                                                                ? "chevron-up"
+                                                                : "chevron-down"
+                                                        }
+                                                        size={20}
+                                                        color="#666"
+                                                    />
+                                                </View>
+                                            </TouchableOpacity>
+                                            {dbDropdownVisible && (
+                                                <ScrollView
+                                                    style={styles.dropdownBox}
+                                                    nestedScrollEnabled
+                                                >
+                                                    {databases.map((db) => (
+                                                        <TouchableOpacity
+                                                            activeOpacity={0.6}
+                                                            key={db}
+                                                            style={
+                                                                styles.dropdownItem
+                                                            }
+                                                            onPress={() => {
+                                                                setSelectedDb(
+                                                                    db
+                                                                );
+                                                                setDbDropdownVisible(
+                                                                    false
+                                                                );
+                                                                saveToStorage();
+                                                            }}
+                                                        >
+                                                            <Text>{db}</Text>
+                                                        </TouchableOpacity>
+                                                    ))}
+                                                </ScrollView>
+                                            )}
+                                        </View>
+                                    </View>
 
-                    <Text style={styles.footerText}>@Daffodil Family</Text>
+                                    {databases.length > 0 && selectedDb && (
+                                        <View style={styles.successBox}>
+                                            <Feather
+                                                name="check-circle"
+                                                size={18}
+                                                color="#1e7f3c"
+                                            />
+                                            <Text style={styles.successText}>
+                                                Domain is active and database
+                                                selected
+                                            </Text>
+                                        </View>
+                                    )}
+                                </View>
+
+                                <View style={{ marginTop: 12 }}>
+                                    <View
+                                        style={{
+                                            height: 1,
+                                            width: "100%",
+                                            backgroundColor: "#696969",
+                                        }}
+                                    />
+                                    <Text
+                                        style={{
+                                            textAlign: "center",
+                                            color: "#696969",
+                                            width: 140,
+                                            alignSelf: "center",
+                                            backgroundColor: "#EFF2FF",
+                                            paddingHorizontal: 8,
+                                            position: "absolute",
+                                            top: -18,
+                                        }}
+                                    >
+                                        Need log info for a different domain?
+                                    </Text>
+                                </View>
+
+                                <TouchableOpacity
+                                    style={styles.domainLogsBtn}
+                                    onPress={() =>
+                                        bottomSheetRef.current?.expand()
+                                    }
+                                    activeOpacity={0.6}
+                                >
+                                    <AntDesign
+                                        name="unordered-list"
+                                        size={20}
+                                        color="#000783"
+                                    />
+                                    <Text style={styles.domainLogsText}>
+                                        Domain Logs
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
+
+                            {databases.length > 0 && selectedDb && (
+                                <Pressable
+                                    onPress={() => setShowLoginPanel(true)}
+                                    style={({ pressed }) => [
+                                        styles.nextButton,
+                                        pressed && styles.loginButtonPressed,
+                                    ]}
+                                >
+                                    <Text style={styles.loginButtonText}>
+                                        Next
+                                    </Text>
+                                </Pressable>
+                            )}
+                        </>
+                    ) : (
+                        <>
+                            {/* LOGIN CARD */}
+                            <View
+                                style={[
+                                    styles.card,
+                                    { backgroundColor: "#FFFF" },
+                                ]}
+                            >
+                                <View
+                                    style={{
+                                        padding: 16,
+                                        gap: 16,
+                                    }}
+                                >
+                                    <Text
+                                        style={[
+                                            styles.cardTitle,
+                                            { textAlign: "center" },
+                                        ]}
+                                    >
+                                        Login Panel
+                                    </Text>
+
+                                    <TextInput
+                                        style={styles.textInputStyle}
+                                        placeholder="User ID"
+                                        value={email}
+                                        onChangeText={setEmail}
+                                    />
+
+                                    <View style={styles.passwordBox}>
+                                        <TextInput
+                                            style={{
+                                                flex: 1,
+                                                paddingVertical: 8,
+                                            }}
+                                            placeholder="Password"
+                                            secureTextEntry={!isPasswordVisible}
+                                            value={password}
+                                            onChangeText={setPassword}
+                                        />
+                                        <TouchableOpacity
+                                            onPress={() =>
+                                                setIsPasswordVisible(
+                                                    !isPasswordVisible
+                                                )
+                                            }
+                                        >
+                                            <Feather
+                                                name={
+                                                    isPasswordVisible
+                                                        ? "eye-off"
+                                                        : "eye"
+                                                }
+                                                size={18}
+                                            />
+                                        </TouchableOpacity>
+                                    </View>
+
+                                    <Pressable
+                                        onPress={handleLogin}
+                                        disabled={
+                                            loading || !email || !password
+                                        }
+                                        style={({ pressed }) => [
+                                            styles.loginButton,
+                                            pressed &&
+                                                styles.loginButtonPressed,
+                                            loading &&
+                                                styles.loginButtonDisabled,
+                                        ]}
+                                    >
+                                        <MaterialIcons
+                                            name="login"
+                                            size={24}
+                                            color="#fff"
+                                        />
+                                        <Text style={styles.loginButtonText}>
+                                            {loading
+                                                ? "Logging in..."
+                                                : "Login"}
+                                        </Text>
+                                    </Pressable>
+                                </View>
+
+                                <View style={{ marginTop: 12 }}>
+                                    <View
+                                        style={{
+                                            height: 1,
+                                            width: "100%",
+                                            backgroundColor: "#696969",
+                                        }}
+                                    />
+                                    <Text
+                                        style={{
+                                            textAlign: "center",
+                                            color: "#696969",
+                                            width: 140,
+                                            alignSelf: "center",
+                                            backgroundColor: "#FFF",
+                                            paddingHorizontal: 8,
+                                            position: "absolute",
+                                            top: -18,
+                                        }}
+                                    >
+                                        Need log info for a different domain?
+                                    </Text>
+                                </View>
+
+                                <TouchableOpacity
+                                    style={styles.domainLogsBtn}
+                                    onPress={() =>
+                                        bottomSheetRef.current?.expand()
+                                    }
+                                    activeOpacity={0.6}
+                                >
+                                    <AntDesign
+                                        name="unordered-list"
+                                        size={20}
+                                        color="#000783"
+                                    />
+                                    <Text style={styles.domainLogsText}>
+                                        Domain Logs
+                                    </Text>
+                                </TouchableOpacity>
+                            </View>
+                            <Pressable
+                                onPress={() => setShowLoginPanel(false)}
+                                style={({ pressed }) => [
+                                    styles.backButton,
+                                    pressed && styles.loginButtonPressed,
+                                ]}
+                            >
+                                <Feather
+                                    name="arrow-left"
+                                    size={20}
+                                    color="white"
+                                />
+                                <Text style={styles.loginButtonText}>Back</Text>
+                            </Pressable>
+                        </>
+                    )}
                 </ScrollView>
+                <Text style={styles.footerText}>@Daffodil Family</Text>
             </KeyboardAvoidingView>
 
             <SessionModal
@@ -473,6 +581,10 @@ const Signin = () => {
 export default Signin;
 
 const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: "#f0f2f5", // A light grey background
+    },
     header: {
         height: 160,
         paddingVertical: 40,
@@ -505,9 +617,11 @@ const styles = StyleSheet.create({
         borderColor: "#000783",
         zIndex: 20,
     },
-    content: {
+    scrollContent: {
+        flexGrow: 1,
+        justifyContent: "center",
         paddingTop: 50,
-        paddingBottom: 40,
+        paddingBottom: 20,
     },
     card: {
         marginHorizontal: 20,
@@ -605,6 +719,7 @@ const styles = StyleSheet.create({
         alignSelf: "center",
         borderRadius: 6,
         flexDirection: "row",
+        marginTop: 20,
         justifyContent: "center",
         alignItems: "center",
     },
@@ -627,6 +742,18 @@ const styles = StyleSheet.create({
         color: "#fff",
         fontWeight: "600",
     },
+    backButton: {
+        backgroundColor: "#000783",
+        height: 40,
+        width: 140,
+        alignSelf: "center",
+        borderRadius: 6,
+        flexDirection: "row",
+        gap: 8,
+        marginTop: 20,
+        justifyContent: "center",
+        alignItems: "center",
+    },
     domainLogsBtn: {
         margin: 16,
         flexDirection: "row",
@@ -647,6 +774,6 @@ const styles = StyleSheet.create({
     footerText: {
         textAlign: "center",
         color: "#696969",
-        marginTop: 10,
+        paddingVertical: 10,
     },
 });
