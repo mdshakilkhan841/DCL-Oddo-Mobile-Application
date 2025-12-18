@@ -1,14 +1,14 @@
 import { useFCMRegistration } from "@/hooks/useFCMRegistration";
-import { Feather } from "@expo/vector-icons";
+import { Feather, FontAwesome5 } from "@expo/vector-icons";
 import BottomSheet from "@gorhom/bottom-sheet";
 import CookieManager from "@react-native-cookies/cookies";
-import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useRef, useState } from "react";
 import {
     ActivityIndicator,
     Alert,
+    Image,
     KeyboardAvoidingView,
     Platform,
     Pressable,
@@ -42,27 +42,11 @@ const Signin = () => {
     const [loading, setLoading] = useState(false);
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
     const [dbFetching, setDbFetching] = useState(false);
-    const [fcmToken, setFcmToken] = useState<string | null>(null);
-    const [deviceId, setDeviceId] = useState<string | null>(null);
 
     const { addSession } = useSessionStore();
     const bottomSheetRef = useRef<BottomSheet>(null);
     const { registerFCM } = useFCMRegistration();
 
-    // useEffect(() => {
-    //     const initializeAndGetToken = async () => {
-    //         const messaging = getMessaging();
-    //         const fcmToken = await getToken(messaging);
-    //         const deviceId = await getDeviceId();
-    //         console.log("🚀 ~ initializeAndGetToken ~ deviceId:", deviceId);
-    //         console.log("🚀 ~ initializeAndGetToken ~ fcmToken:", fcmToken);
-    //         setFcmToken(fcmToken);
-    //         setDeviceId(deviceId);
-    //     };
-    //     initializeAndGetToken();
-    // }, []);
-
-    // Load stored domain + DB
     useEffect(() => {
         loadStoredData();
     }, []);
@@ -97,10 +81,7 @@ const Signin = () => {
     };
 
     const fetchDatabaseList = async () => {
-        if (!domain) {
-            // Alert.alert("Error", "Enter domain first");
-            return;
-        }
+        if (!domain) return;
 
         if (databases.length > 0) {
             setDbDropdownVisible(!dbDropdownVisible);
@@ -111,9 +92,7 @@ const Signin = () => {
         try {
             const res = await fetch(`https://${domain}/web/database/list`, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     jsonrpc: "2.0",
                     method: "call",
@@ -129,25 +108,21 @@ const Signin = () => {
             setDbDropdownVisible(true);
             await saveToStorage();
         } catch (err) {
-            console.log(err);
             Alert.alert("Error", "Could not fetch database list");
         } finally {
             setDbFetching(false);
         }
     };
 
-    // RESTORED FEATURE: Select an existing domain from modal
     const handleSelectSession = async (session: Session) => {
         try {
             setLoading(true);
             bottomSheetRef.current?.close();
 
-            // Fill domain & fetch DBs
             setDomain(session.domain);
-            setDatabases([]); // reset
+            setDatabases([]);
             setSelectedDb(null);
 
-            // Fetch database list using new domain
             const res = await fetch(
                 `https://${session.domain}/web/database/list`,
                 {
@@ -166,11 +141,10 @@ const Signin = () => {
 
             setDatabases(list);
             setSelectedDb(list[0]);
-
             await saveToStorage();
 
             navigateToHome(`${session.baseUrl}/web`);
-        } catch (err) {
+        } catch {
             Alert.alert("Error", "Could not load saved session");
         } finally {
             setLoading(false);
@@ -187,7 +161,7 @@ const Signin = () => {
                 body: JSON.stringify(body),
             });
 
-            if (!res.ok) throw new Error(`Login failed (${res.status})`);
+            if (!res.ok) throw new Error("Login failed");
 
             const data = await res.json();
             const baseUrl = data?.result?.["web.base.url"];
@@ -196,7 +170,6 @@ const Signin = () => {
             const setCookieHeader = res.headers.get("set-cookie") || "";
             const match = setCookieHeader.match(/session_id=([^;]+)/);
             const sessionId = match?.[1];
-
             if (!sessionId) throw new Error("session_id not found");
 
             const newSession: Session = {
@@ -209,10 +182,7 @@ const Signin = () => {
 
             addSession(newSession);
             await setSessionCookie(newSession);
-
-            // Register FCM
             registerFCM(user_id, domain);
-
             navigateToHome(`${baseUrl}/web`);
         } catch (err: any) {
             Alert.alert("Error", err.message);
@@ -223,128 +193,105 @@ const Signin = () => {
 
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
-            <StatusBar style="auto" />
-            <LinearGradient
-                colors={["#84fab0", "#8fd3f4"]}
-                style={styles.container}
+            <StatusBar style="light" />
+
+            {/* HEADER */}
+            <View style={styles.header}>
+                <Text style={styles.headerTitle}>Welcome Back!</Text>
+                <Text style={styles.headerSubtitle}>
+                    Sign in to your account
+                </Text>
+                {/* LOGO PLACEHOLDER */}
+                <View style={styles.logoCircle}>
+                    <Image
+                        source={require("@/assets/images/daffodil-group-logo.png")}
+                        style={{ width: 50, height: 50 }}
+                        resizeMode="cover"
+                    />
+                </View>
+            </View>
+
+            <KeyboardAvoidingView
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
+                style={{ flex: 1 }}
             >
-                <KeyboardAvoidingView
-                    behavior={Platform.OS === "ios" ? "padding" : "height"}
-                    style={styles.keyboardAvoidingContainer}
+                <ScrollView
+                    contentContainerStyle={styles.content}
+                    showsVerticalScrollIndicator={false}
                 >
-                    <ScrollView
-                        contentContainerStyle={styles.scrollViewContent}
-                        showsVerticalScrollIndicator={false}
-                    >
-                        {/* FCM Token Display */}
-                        {/* {fcmToken && (
-                            <View style={styles.fcmContainer}>
-                                <Text style={styles.fcmLabel}>FCM Token:</Text>
-                                <View style={styles.fcmTokenWrapper}>
-                                    <Text
-                                        style={styles.fcmTokenText}
-                                        numberOfLines={1}
-                                        ellipsizeMode="middle"
-                                    >
-                                        {fcmToken}
-                                    </Text>
-                                    <TouchableOpacity
-                                        onPress={async () => {
-                                            await Clipboard.setStringAsync(
-                                                fcmToken
-                                            );
-                                        }}
-                                    >
-                                        <Feather
-                                            name="copy"
-                                            size={18}
-                                            color="#34495e"
-                                        />
-                                    </TouchableOpacity>
-                                </View>
+                    {/* DOMAIN CARD */}
+                    <View style={styles.card}>
+                        <View
+                            style={{
+                                flexDirection: "row",
+                                alignItems: "center",
+                                gap: 16,
+                            }}
+                        >
+                            <View style={styles.logoContainer}>
+                                <FontAwesome5
+                                    name="globe"
+                                    size={24}
+                                    color="#000783"
+                                />
                             </View>
-                        )} */}
-                        {/* FCM Token Display */}
-                        {/* {deviceId && (
-                            <View style={styles.fcmContainer}>
-                                <Text style={styles.fcmLabel}>Device ID:</Text>
-                                <View style={styles.fcmTokenWrapper}>
-                                    <Text
-                                        style={styles.fcmTokenText}
-                                        numberOfLines={1}
-                                        ellipsizeMode="middle"
-                                    >
-                                        {deviceId}
-                                    </Text>
-                                    <TouchableOpacity
-                                        onPress={async () => {
-                                            await Clipboard.setStringAsync(
-                                                deviceId
-                                            );
-                                        }}
-                                    >
-                                        <Feather
-                                            name="copy"
-                                            size={18}
-                                            color="#34495e"
-                                        />
-                                    </TouchableOpacity>
-                                </View>
+                            <View>
+                                <Text style={styles.cardTitle}>
+                                    Domain Information
+                                </Text>
+                                <Text style={styles.cardSubtitle}>
+                                    Connected to your workspace
+                                </Text>
                             </View>
-                        )} */}
-
-                        <View style={styles.header}>
-                            <Text style={styles.title}>Welcome Back!</Text>
-                            <Text style={styles.subtitle}>
-                                Sign in to your account
-                            </Text>
                         </View>
-
-                        {/* SECTION 1: DOMAIN SETTINGS */}
-                        <View style={styles.formContainer}>
-                            <Text style={styles.sectionTitle}>
-                                Domain Settings
-                            </Text>
-
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Domain Name"
-                                value={domain}
-                                onChangeText={(v) => {
-                                    setDomain(v);
-                                    setDatabases([]);
-                                    setSelectedDb(null);
-                                }}
-                                autoCapitalize="none"
-                                placeholderTextColor="#888"
-                            />
+                        <View style={[styles.inputContainer, { zIndex: 1 }]}>
+                            <View>
+                                <Text style={styles.inputLabel}>
+                                    Domain Name
+                                </Text>
+                                <TextInput
+                                    style={styles.textInputStyle}
+                                    placeholder="Domain"
+                                    value={domain}
+                                    onChangeText={(v) => {
+                                        setDomain(v);
+                                        setDatabases([]);
+                                        setSelectedDb(null);
+                                    }}
+                                />
+                            </View>
 
                             <View>
-                                {/* DB Selector */}
+                                <Text style={styles.inputLabel}>Database</Text>
                                 <TouchableOpacity
-                                    activeOpacity={0.9}
                                     style={styles.input}
                                     onPress={fetchDatabaseList}
+                                    activeOpacity={0.6}
                                 >
-                                    {dbFetching ? (
-                                        <ActivityIndicator color="#333" />
-                                    ) : (
-                                        <Text
-                                            style={{
-                                                color: selectedDb
-                                                    ? "#333"
-                                                    : "#888",
-                                            }}
-                                        >
-                                            {selectedDb || "Select Database"}
-                                        </Text>
-                                    )}
+                                    <View style={styles.dbInputContainer}>
+                                        {dbFetching ? (
+                                            <ActivityIndicator />
+                                        ) : (
+                                            <Text>
+                                                {selectedDb ||
+                                                    "Select Database"}
+                                            </Text>
+                                        )}
+                                        <Feather
+                                            name={
+                                                dbDropdownVisible
+                                                    ? "chevron-up"
+                                                    : "chevron-down"
+                                            }
+                                            size={20}
+                                            color="#666"
+                                        />
+                                    </View>
                                 </TouchableOpacity>
-
                                 {dbDropdownVisible && (
                                     <ScrollView
                                         style={styles.dropdownBox}
-                                        nestedScrollEnabled={true}
+                                        nestedScrollEnabled
                                     >
                                         {databases.map((db) => (
                                             <TouchableOpacity
@@ -357,11 +304,7 @@ const Signin = () => {
                                                     saveToStorage();
                                                 }}
                                             >
-                                                <Text
-                                                    style={styles.dropdownText}
-                                                >
-                                                    {db}
-                                                </Text>
+                                                <Text>{db}</Text>
                                             </TouchableOpacity>
                                         ))}
                                     </ScrollView>
@@ -369,78 +312,72 @@ const Signin = () => {
                             </View>
                         </View>
 
-                        {/* SECTION 2: USER CREDENTIALS */}
-                        <View style={styles.formContainer}>
-                            <Text style={styles.sectionTitle}>
-                                User Credentials
-                            </Text>
-
-                            <TextInput
-                                style={styles.input}
-                                placeholder="User Email"
-                                value={email}
-                                onChangeText={setEmail}
-                                autoCapitalize="none"
-                                placeholderTextColor="#888"
+                        <View style={styles.successBox}>
+                            <Feather
+                                name="check-circle"
+                                size={18}
+                                color="#1e7f3c"
                             />
+                            <Text style={styles.successText}>
+                                Domain is active and connected
+                            </Text>
+                        </View>
+                    </View>
 
-                            <View style={styles.passwordContainer}>
-                                <TextInput
-                                    style={styles.passwordInput}
-                                    placeholder="Password"
-                                    secureTextEntry={!isPasswordVisible}
-                                    value={password}
-                                    onChangeText={setPassword}
-                                    placeholderTextColor="#888"
-                                />
+                    {/* LOGIN CARD */}
+                    <View style={styles.card}>
+                        <Text style={styles.cardTitle}>Login Panel</Text>
 
-                                <TouchableOpacity
-                                    onPress={() =>
-                                        setIsPasswordVisible(!isPasswordVisible)
-                                    }
-                                >
-                                    <Feather
-                                        name={
-                                            isPasswordVisible
-                                                ? "eye-off"
-                                                : "eye"
-                                        }
-                                        size={20}
-                                        color="gray"
-                                    />
-                                </TouchableOpacity>
-                            </View>
+                        <TextInput
+                            style={styles.textInputStyle}
+                            placeholder="User ID"
+                            value={email}
+                            onChangeText={setEmail}
+                        />
 
-                            <Pressable
-                                onPress={handleLogin}
-                                disabled={loading}
-                                style={({ pressed }) => [
-                                    styles.button,
-                                    pressed && styles.buttonPressed,
-                                    loading && styles.buttonDisabled,
-                                ]}
+                        <View style={styles.passwordBox}>
+                            <TextInput
+                                style={{ flex: 1, paddingVertical: 8 }}
+                                placeholder="Password"
+                                secureTextEntry={!isPasswordVisible}
+                                value={password}
+                                onChangeText={setPassword}
+                            />
+                            <TouchableOpacity
+                                onPress={() =>
+                                    setIsPasswordVisible(!isPasswordVisible)
+                                }
                             >
-                                <Text style={styles.buttonText}>
-                                    {loading ? "Logging in..." : "Login"}
-                                </Text>
-                            </Pressable>
+                                <Feather
+                                    name={isPasswordVisible ? "eye-off" : "eye"}
+                                    size={18}
+                                />
+                            </TouchableOpacity>
                         </View>
 
-                        {/* EXISTING SESSION BUTTON */}
+                        <Pressable
+                            style={styles.loginButton}
+                            onPress={handleLogin}
+                        >
+                            <Text style={styles.loginButtonText}>
+                                {loading ? "Logging in..." : "Login"}
+                            </Text>
+                        </Pressable>
+
                         <TouchableOpacity
-                            activeOpacity={0.6}
-                            style={styles.linkButton}
+                            style={styles.domainLogsBtn}
                             onPress={() => bottomSheetRef.current?.expand()}
                         >
-                            <Text style={styles.linkButtonText}>
-                                Or login to an existing domain
+                            <Text style={styles.domainLogsText}>
+                                Domain Logs
                             </Text>
                         </TouchableOpacity>
-                    </ScrollView>
-                </KeyboardAvoidingView>
-            </LinearGradient>
+                    </View>
 
-            {/* RESTORED MODAL HERE */}
+                    <Text style={styles.footerText}>@Daffodil Family</Text>
+                </ScrollView>
+            </KeyboardAvoidingView>
+
             <SessionModal
                 bottomSheetRef={bottomSheetRef}
                 onSelectSession={handleSelectSession}
@@ -452,73 +389,105 @@ const Signin = () => {
 export default Signin;
 
 const styles = StyleSheet.create({
-    container: { flex: 1 },
-    keyboardAvoidingContainer: { flex: 1 },
-    scrollViewContent: {
-        flexGrow: 1,
-        justifyContent: "center",
-        paddingHorizontal: 20,
+    header: {
+        height: 160,
+        paddingVertical: 40,
+        alignItems: "center",
+        borderBottomLeftRadius: 60,
+        borderBottomRightRadius: 60,
+        backgroundColor: "#000783",
+        position: "relative",
     },
-    header: { alignItems: "center", marginBottom: 40 },
-    title: { fontSize: 32, fontWeight: "bold", color: "#2c3e50" },
-    subtitle: { fontSize: 16, color: "#34495e", marginTop: 8 },
-    sectionTitle: {
+    headerTitle: {
+        color: "#fff",
+        fontSize: 26,
+        fontWeight: "bold",
+    },
+    headerSubtitle: {
+        color: "#dbe4ff",
+    },
+    logoCircle: {
+        position: "absolute",
+        bottom: -35,
+        alignSelf: "center",
+        width: 75,
+        height: 75,
+        borderRadius: 100,
+        backgroundColor: "#fff",
+        justifyContent: "center",
+        alignItems: "center",
+        elevation: 5,
+        borderWidth: 6,
+        borderColor: "#000783",
+        zIndex: 20,
+    },
+    content: {
+        paddingTop: 50,
+        paddingBottom: 40,
+    },
+    card: {
+        backgroundColor: "#EFF2FF",
+        marginHorizontal: 20,
+        marginBottom: 20,
+        padding: 16,
+        borderRadius: 14,
+        elevation: 2,
+        gap: 16,
+    },
+    cardTitle: {
         fontSize: 18,
         fontWeight: "700",
-        marginBottom: 10,
-        color: "#2c3e50",
     },
-    formContainer: {
-        width: "85%",
-        alignSelf: "center",
+    cardSubtitle: {
+        fontSize: 13,
+        color: "#666",
+    },
+    logoContainer: {
+        width: 44,
+        height: 44,
+        backgroundColor: "#FFFFFF",
+        borderRadius: 8,
+        justifyContent: "center",
+        alignItems: "center",
+        padding: 10,
+        elevation: 2,
+    },
+    inputContainer: {
+        backgroundColor: "#fff",
+        borderRadius: 8,
+        elevation: 1,
+        padding: 16,
+        gap: 12,
+    },
+    inputLabel: {
+        fontSize: 16,
+        fontWeight: "600",
     },
     input: {
-        width: "100%",
-        height: 46,
-        backgroundColor: "rgba(255, 255, 255, 0.7)",
-        borderRadius: 8,
-        paddingHorizontal: 15,
-        marginBottom: 15,
-        fontSize: 16,
-        color: "#333",
-        justifyContent: "center",
+        borderBottomWidth: 1,
+        borderBottomColor: "#ddd",
+        justifyContent: "center", // Kept for the TouchableOpacity
+        height: 40, // Give it a consistent height
     },
-    passwordContainer: {
+    textInputStyle: {
+        borderBottomWidth: 1,
+        borderBottomColor: "#ddd",
+        paddingVertical: 8,
+    },
+    dbInputContainer: {
         flexDirection: "row",
+        justifyContent: "space-between",
         alignItems: "center",
-        width: "100%",
-        height: 46,
-        backgroundColor: "rgba(255, 255, 255, 0.7)",
-        borderRadius: 8,
-        paddingHorizontal: 15,
-        marginBottom: 25,
     },
-    passwordInput: {
-        flex: 1,
-        fontSize: 16,
-        height: "100%",
-        color: "#333",
-    },
-    button: {
-        width: "100%",
-        height: 46,
-        backgroundColor: "#2c3e50",
-        alignItems: "center",
-        justifyContent: "center",
-        borderRadius: 8,
-        marginTop: 10,
-    },
-    buttonPressed: { backgroundColor: "#34495e" },
-    buttonDisabled: { backgroundColor: "#95a5a6" },
-    buttonText: { color: "#fff", fontSize: 18, fontWeight: "bold" },
     dropdownBox: {
         position: "absolute",
-        top: 50, // Position it right below the input
+        bottom: -45, // Position it right below the input
         width: "100%",
-        maxHeight: 200, // Set a max height for the dropdown
+        maxHeight: 150, // Set a max height for the dropdown
         backgroundColor: "white",
-        borderRadius: 8,
-        elevation: 5,
+        borderBottomRightRadius: 6,
+        borderBottomLeftRadius: 6,
+        elevation: 3,
         zIndex: 10, // Ensure it's on top of other elements
     },
     dropdownItem: {
@@ -526,39 +495,49 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
         borderBottomColor: "#eee",
     },
-    dropdownText: {
-        fontSize: 16,
-        color: "#333",
-    },
-    linkButton: { marginTop: 15 },
-    linkButtonText: {
-        color: "#2c3e50",
-        fontSize: 15,
-        fontWeight: "500",
-        textAlign: "center",
-    },
-    fcmContainer: {
-        width: "85%",
-        alignSelf: "center",
-    },
-    fcmLabel: {
-        fontSize: 12,
-        color: "#34495e",
-        fontWeight: "bold",
-        marginBottom: 4,
-    },
-    fcmTokenWrapper: {
+    successBox: {
         flexDirection: "row",
         alignItems: "center",
-        justifyContent: "space-between",
-        backgroundColor: "rgba(255, 255, 255, 0.5)",
+        backgroundColor: "#e8f7ee",
         padding: 10,
         borderRadius: 8,
+        borderWidth: 1,
+        borderColor: "#1e7f3c",
+    },
+    successText: {
+        marginLeft: 8,
+        color: "#1e7f3c",
+        fontSize: 13,
+    },
+    passwordBox: {
+        flexDirection: "row",
+        alignItems: "center",
+        borderBottomWidth: 1,
+        borderBottomColor: "#ddd",
         marginBottom: 20,
     },
-    fcmTokenText: {
-        color: "#2c3e50",
-        flex: 1,
-        marginRight: 10,
+    loginButton: {
+        backgroundColor: "#0a1fa8",
+        height: 44,
+        borderRadius: 8,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    loginButtonText: {
+        color: "#fff",
+        fontWeight: "600",
+    },
+    domainLogsBtn: {
+        marginTop: 14,
+        alignSelf: "center",
+    },
+    domainLogsText: {
+        color: "#0a1fa8",
+        fontWeight: "600",
+    },
+    footerText: {
+        textAlign: "center",
+        color: "#999",
+        marginTop: 10,
     },
 });
