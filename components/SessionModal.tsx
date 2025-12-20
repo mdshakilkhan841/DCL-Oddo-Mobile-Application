@@ -1,8 +1,8 @@
 import { Session, useSessionStore } from "@/store/sessionStore";
-import { Feather } from "@expo/vector-icons";
+import { Feather, MaterialIcons } from "@expo/vector-icons";
 import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import React, { useMemo } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 
 interface SessionModalProps {
     bottomSheetRef: React.Ref<BottomSheet>;
@@ -14,7 +14,26 @@ const SessionModal = ({
     onSelectSession,
 }: SessionModalProps) => {
     const sessions = useSessionStore((state) => state.sessions);
+    const removeSession = useSessionStore((state) => state.removeSession);
     const snapPoints = useMemo(() => ["50%", "75%"], []);
+
+    const handleLogout = (session: Session) => {
+        Alert.alert(
+            "Logout Session",
+            `Are you sure you want to logout from ${session.domain}?`,
+            [
+                {
+                    text: "Cancel",
+                    style: "cancel",
+                },
+                {
+                    text: "Logout",
+                    style: "destructive",
+                    onPress: () => removeSession(session.domain),
+                },
+            ]
+        );
+    };
 
     return (
         <BottomSheet
@@ -38,24 +57,42 @@ const SessionModal = ({
                     </View>
                 ) : (
                     sessions.map((session) => (
-                        <Pressable
-                            key={session.domain}
-                            style={({ pressed }) => [
-                                styles.sessionItem,
-                                pressed && styles.itemPressed,
-                            ]}
-                            onPress={() => onSelectSession(session)}
-                        >
-                            <Feather name="server" size={24} color="#2c3e50" />
-                            <View style={styles.sessionInfo}>
-                                <Text style={styles.sessionDomain}>
-                                    {session.domain}
-                                </Text>
-                                <Text style={styles.sessionEmail}>
-                                    {session.email}
-                                </Text>
-                            </View>
-                        </Pressable>
+                        <View key={session.domain} style={styles.sessionItem}>
+                            <Pressable
+                                style={({ pressed }) => [
+                                    styles.sessionContent,
+                                    pressed && styles.itemPressed,
+                                ]}
+                                onPress={() => onSelectSession(session)}
+                            >
+                                <Feather
+                                    name="server"
+                                    size={24}
+                                    color="#2c3e50"
+                                />
+                                <View style={styles.sessionInfo}>
+                                    <Text style={styles.sessionDomain}>
+                                        {session.domain}
+                                    </Text>
+                                    <Text style={styles.sessionEmail}>
+                                        {session.email}
+                                    </Text>
+                                </View>
+                            </Pressable>
+                            <Pressable
+                                style={({ pressed }) => [
+                                    styles.logoutButton,
+                                    pressed && styles.logoutButtonPressed,
+                                ]}
+                                onPress={() => handleLogout(session)}
+                            >
+                                <MaterialIcons
+                                    name="logout"
+                                    size={20}
+                                    color="#dc3545"
+                                />
+                            </Pressable>
+                        </View>
                     ))
                 )}
             </BottomSheetScrollView>
@@ -83,16 +120,33 @@ const styles = StyleSheet.create({
     },
     sessionItem: {
         flexDirection: "row",
-        alignItems: "center",
         backgroundColor: "#fff",
-        padding: 15,
         borderRadius: 8,
         marginBottom: 10,
         borderWidth: 1,
         borderColor: "#e9ecef",
+        overflow: "hidden",
+    },
+    sessionContent: {
+        flexDirection: "row",
+        alignItems: "center",
+        padding: 15,
+        flex: 1,
     },
     itemPressed: {
         backgroundColor: "#f1f3f5",
+    },
+    logoutButton: {
+        width: 50,
+        height: "100%",
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "#fff",
+        borderLeftWidth: 1,
+        borderLeftColor: "#e9ecef",
+    },
+    logoutButtonPressed: {
+        backgroundColor: "#f8d7da",
     },
     sessionInfo: {
         marginLeft: 15,

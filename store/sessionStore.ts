@@ -13,6 +13,7 @@ export interface Session {
 interface SessionState {
     sessions: Session[];
     addSession: (session: Session) => void;
+    removeSession: (domain: string) => void;
 }
 
 const secureStorage: StateStorage = {
@@ -39,6 +40,12 @@ export const useSessionStore = create<SessionState>()(
                         ),
                         session,
                     ],
+                })),
+            removeSession: (domain) =>
+                set((state) => ({
+                    sessions: state.sessions.filter(
+                        (s) => s.domain !== domain
+                    ),
                 })),
         }),
         {
