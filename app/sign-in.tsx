@@ -1,4 +1,8 @@
+import SessionModal from "@/components/SessionModal";
 import { useFCMRegistration } from "@/hooks/useFCMRegistration";
+import { useSessionHandler } from "@/hooks/useSessionHandler";
+import { useDomainStore } from "@/store/domainStore";
+import { Session, useSessionStore } from "@/store/sessionStore";
 import {
     AntDesign,
     Feather,
@@ -25,9 +29,6 @@ import {
     View,
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import SessionModal from "../components/SessionModal";
-import { useDomainStore } from "../store/domainStore";
-import { Session, useSessionStore } from "../store/sessionStore";
 
 const Signin = () => {
     const {
@@ -52,6 +53,10 @@ const Signin = () => {
     const { addSession } = useSessionStore();
     const bottomSheetRef = useRef<BottomSheet>(null);
     const { registerFCM } = useFCMRegistration();
+    const { handleSelectSession } = useSessionHandler({
+        bottomSheetRef,
+        setLoading,
+    });
 
     useEffect(() => {
         loadStoredData();
@@ -69,7 +74,7 @@ const Signin = () => {
     };
 
     const navigateToHome = (baseUrl: string) => {
-        router.navigate({
+        router.replace({
             pathname: "/home",
             params: { baseUrl },
         });
@@ -117,43 +122,6 @@ const Signin = () => {
             Alert.alert("Error", "Could not fetch database list");
         } finally {
             setDbFetching(false);
-        }
-    };
-
-    const handleSelectSession = async (session: Session) => {
-        try {
-            setLoading(true);
-            bottomSheetRef.current?.close();
-
-            setDomain(session.domain);
-            setDatabases([]);
-            setSelectedDb(null);
-
-            const res = await fetch(
-                `https://${session.domain}/web/database/list`,
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        jsonrpc: "2.0",
-                        method: "call",
-                        params: {},
-                    }),
-                }
-            );
-
-            const data = await res.json();
-            const list = data?.result || [];
-
-            setDatabases(list);
-            setSelectedDb(list[0]);
-            await saveToStorage();
-
-            navigateToHome(`${session.baseUrl}/web`);
-        } catch {
-            Alert.alert("Error", "Could not load saved session");
-        } finally {
-            setLoading(false);
         }
     };
 

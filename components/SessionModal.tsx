@@ -1,8 +1,8 @@
+import { Session, useSessionStore } from "@/store/sessionStore";
 import { Feather } from "@expo/vector-icons";
 import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import React, { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { Session, useSessionStore } from "../store/sessionStore";
 
 interface SessionModalProps {
     bottomSheetRef: React.Ref<BottomSheet>;
