@@ -272,7 +272,7 @@ const Signin = () => {
                                     >
                                         <View>
                                             <Text style={styles.inputLabel}>
-                                                Domain Name
+                                                Domain
                                             </Text>
                                             <TextInput
                                                 style={styles.textInputStyle}

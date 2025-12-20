@@ -185,8 +185,9 @@ export default function RootLayout() {
             <Stack.Screen
                 name="home"
                 options={{
+                    gestureEnabled: false,
                     headerShown: true,
-                    title: "Oddo Webview",
+                    title: "Odoo Module",
                     animation: "slide_from_right",
                 }}
             />
