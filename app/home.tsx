@@ -67,6 +67,7 @@ const HomeScreen = () => {
                                         justifyContent: "center",
                                         alignItems: "center",
                                     }}
+                                    activeOpacity={0.6}
                                 >
                                     <AntDesign
                                         name="appstore"
@@ -141,6 +142,7 @@ const HomeScreen = () => {
                                             setIsModalVisible(false);
                                             router.push("/sign-in");
                                         }}
+                                        activeOpacity={0.6}
                                     >
                                         <MaterialIcons
                                             name="login"
@@ -157,6 +159,7 @@ const HomeScreen = () => {
                                         onPress={() =>
                                             bottomSheetRef.current?.expand()
                                         }
+                                        activeOpacity={0.6}
                                     >
                                         <Feather
                                             name="server"
