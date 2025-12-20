@@ -567,7 +567,7 @@ const Signin = () => {
                         </>
                     )}
                 </ScrollView>
-                <Text style={styles.footerText}>@Daffodil Family</Text>
+                <Text style={styles.footerText}>@Daffodil Group</Text>
             </KeyboardAvoidingView>
 
             <SessionModal
@@ -586,13 +586,14 @@ const styles = StyleSheet.create({
         backgroundColor: "#f0f2f5", // A light grey background
     },
     header: {
-        height: 160,
+        height: Platform.OS === "ios" ? 180 : 160,
         paddingVertical: 40,
         alignItems: "center",
         borderBottomLeftRadius: 60,
         borderBottomRightRadius: 60,
         backgroundColor: "#000783",
         position: "relative",
+        paddingTop: Platform.OS === "ios" ? 70 : 40,
     },
     headerTitle: {
         color: "#fff",
@@ -774,6 +775,6 @@ const styles = StyleSheet.create({
     footerText: {
         textAlign: "center",
         color: "#696969",
-        paddingVertical: 10,
+        paddingVertical: 4,
     },
 });
