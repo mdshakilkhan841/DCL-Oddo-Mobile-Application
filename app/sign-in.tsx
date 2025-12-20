@@ -227,6 +227,7 @@ const Signin = () => {
                 >
                     {!showLoginPanel ? (
                         <>
+                            {/* Domain CARD */}
                             <View
                                 style={[
                                     styles.card,
@@ -567,7 +568,7 @@ const Signin = () => {
                         </>
                     )}
                 </ScrollView>
-                <Text style={styles.footerText}>@Daffodil Group</Text>
+                {/* <Text style={styles.footerText}>@Daffodil Group</Text> */}
             </KeyboardAvoidingView>
 
             <SessionModal
@@ -614,6 +615,10 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         elevation: 5,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 5 },
+        shadowOpacity: 0.2,
+        shadowRadius: 10,
         borderWidth: 6,
         borderColor: "#000783",
         zIndex: 20,
@@ -629,6 +634,10 @@ const styles = StyleSheet.create({
         marginBottom: 20,
         borderRadius: 14,
         elevation: 2,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
         gap: 16,
     },
     cardTitle: {
@@ -648,11 +657,19 @@ const styles = StyleSheet.create({
         alignItems: "center",
         padding: 10,
         elevation: 2,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
     },
     inputContainer: {
         backgroundColor: "#fff",
         borderRadius: 8,
         elevation: 1,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 2,
         padding: 16,
         gap: 12,
     },
@@ -685,6 +702,10 @@ const styles = StyleSheet.create({
         borderBottomRightRadius: 6,
         borderBottomLeftRadius: 6,
         elevation: 3,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.15,
+        shadowRadius: 6,
         zIndex: 10, // Ensure it's on top of other elements
     },
     dropdownItem: {
