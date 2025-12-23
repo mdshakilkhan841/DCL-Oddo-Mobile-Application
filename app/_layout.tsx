@@ -70,16 +70,6 @@ export default function RootLayout() {
             });
             return;
         }
-
-        // Example: Navigate with task_id
-        if (data.type === "task" && data.task_id) {
-            const url = `/web#id=${data.task_id}&model=project.task&view_type=form`;
-
-            router.push({
-                pathname: "/home",
-                params: { url },
-            });
-        }
     };
 
     useEffect(() => {
