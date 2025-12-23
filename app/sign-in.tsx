@@ -58,6 +58,16 @@ const Signin = () => {
         setLoading,
     });
 
+    // useEffect(() => {
+    //     const initializeAndGetToken = async () => {
+    //         const fcmToken = await getToken(getMessaging());
+    //         const deviceId = await getDeviceId();
+    //         console.log("🚀 ~ initializeAndGetToken ~ deviceId:", deviceId);
+    //         console.log("🚀 ~ initializeAndGetToken ~ fcmToken:", fcmToken);
+    //     };
+    //     initializeAndGetToken();
+    // }, []);
+
     useEffect(() => {
         loadStoredData();
     }, []);

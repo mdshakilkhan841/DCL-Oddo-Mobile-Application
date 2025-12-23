@@ -11,9 +11,12 @@ import {
 } from "@react-native-firebase/messaging";
 import { router, Stack } from "expo-router";
 import * as SecureStore from "expo-secure-store";
-import { useEffect } from "react";
-import { Platform } from "react-native";
+import * as SplashScreen from "expo-splash-screen";
+import { useCallback, useEffect, useState } from "react";
+import { Platform, View } from "react-native";
 import "react-native-gesture-handler";
+
+SplashScreen.preventAutoHideAsync();
 
 declare global {
     var __notificationData: any;
@@ -21,40 +24,33 @@ declare global {
 
 // Register background handler
 setBackgroundMessageHandler(getMessaging(), async (remoteMessage) => {
-    // console.log("📩 Background Message Received:");
-    // console.log("Title:", remoteMessage.notification?.title);
-    // console.log("Body:", remoteMessage.notification?.body);
-    // console.log("Data:", remoteMessage.data);
-    // Since backend sends data-only messages, we need to display the notification using Expo
-    // Extract title and body from data if not in notification
-    // const title = String(
-    //     remoteMessage.data?.title || remoteMessage.notification?.title || ""
-    // );
-    // const body = String(
-    //     remoteMessage.data?.body || remoteMessage.notification?.body || ""
-    // );
-    // try {
-    //     await Notifications.scheduleNotificationAsync({
-    //         content: {
-    //             title,
-    //             body,
-    //             data: remoteMessage.data || {},
-    //             sound: "default",
-    //             badge: 1,
-    //         },
-    //         trigger: null, // Show immediately
-    //     });
-    //     // console.log("✅ Background notification displayed successfully");
-    // } catch (error) {
-    //     console.log("❌ Error displaying background notification:", error);
-    // }
     return Promise.resolve();
 });
 
-//     return Promise.resolve();
-// });
-
 export default function RootLayout() {
+    const [ready, setReady] = useState(false);
+
+    useEffect(() => {
+        async function prepare() {
+            try {
+                // load fonts, storage, auth, etc.
+                await new Promise((resolve) => setTimeout(resolve, 300)); // example
+            } catch (e) {
+                console.warn(e);
+            } finally {
+                setReady(true);
+            }
+        }
+
+        prepare();
+    }, []);
+
+    const onLayoutRootView = useCallback(async () => {
+        if (ready) {
+            await SplashScreen.hideAsync();
+        }
+    }, [ready]);
+
     // Initialize notification setup (channels, permissions)
     useNotificationSetup();
 
@@ -62,6 +58,29 @@ export default function RootLayout() {
     useNotificationHandler();
     const { sessions } = useSessionStore();
     const { registerFCM } = useFCMRegistration();
+
+    const handleNotificationNavigation = (data: any) => {
+        // console.log("🔀 Navigating using notification data:", data);
+
+        // Example: Odoo URL passed from backend
+        if (data.url) {
+            router.push({
+                pathname: "/home",
+                params: { baseUrl: data.url },
+            });
+            return;
+        }
+
+        // Example: Navigate with task_id
+        if (data.type === "task" && data.task_id) {
+            const url = `/web#id=${data.task_id}&model=project.task&view_type=form`;
+
+            router.push({
+                pathname: "/home",
+                params: { url },
+            });
+        }
+    };
 
     useEffect(() => {
         // 1️⃣ App opened from background
@@ -155,42 +174,26 @@ export default function RootLayout() {
         };
     }, []); // Run only once
 
-    const handleNotificationNavigation = (data: any) => {
-        // console.log("🔀 Navigating using notification data:", data);
-
-        // Example: Odoo URL passed from backend
-        if (data.url) {
-            router.push({
-                pathname: "/home",
-                params: { baseUrl: data.url },
-            });
-            return;
-        }
-
-        // Example: Navigate with task_id
-        if (data.type === "task" && data.task_id) {
-            const url = `/web#id=${data.task_id}&model=project.task&view_type=form`;
-
-            router.push({
-                pathname: "/home",
-                params: { url },
-            });
-        }
-    };
+    if (!ready) {
+        // IMPORTANT: render NOTHING while splash is visible
+        return null;
+    }
 
     return (
-        <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="index" />
-            <Stack.Screen name="sign-in" />
-            <Stack.Screen
-                name="home"
-                options={{
-                    gestureEnabled: false,
-                    headerShown: true,
-                    title: "Odoo Module",
-                    animation: "slide_from_right",
-                }}
-            />
-        </Stack>
+        <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
+            <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="index" />
+                <Stack.Screen name="sign-in" />
+                <Stack.Screen
+                    name="home"
+                    options={{
+                        gestureEnabled: false,
+                        headerShown: true,
+                        title: "Odoo Module",
+                        animation: "slide_from_right",
+                    }}
+                />
+            </Stack>
+        </View>
     );
 }
