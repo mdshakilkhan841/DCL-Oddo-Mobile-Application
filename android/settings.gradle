@@ -31,7 +31,7 @@ extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
 }
 expoAutolinking.useExpoModules()
 
-rootProject.name = 'DCL Odoo Module'
+rootProject.name = 'Daffodil Odoo Module'
 
 expoAutolinking.useExpoVersionCatalog()
 
