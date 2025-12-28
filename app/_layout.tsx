@@ -5,7 +5,6 @@ import { useNotificationSetup } from "@/hooks/useNotificationSetup";
 import { useSessionStore } from "@/store/sessionStore";
 import {
     getMessaging,
-    onNotificationOpenedApp,
     onTokenRefresh,
     setBackgroundMessageHandler,
 } from "@react-native-firebase/messaging";
@@ -24,6 +23,12 @@ declare global {
 
 // Register background handler
 setBackgroundMessageHandler(getMessaging(), async (remoteMessage) => {
+    console.log("🔥 Background handler called with:", remoteMessage?.data);
+    if (remoteMessage?.data) {
+        // Store notification data globally for when app is launched from closed state
+        global.__notificationData = remoteMessage.data;
+        console.log("💾 Stored notification data:", global.__notificationData);
+    }
     return Promise.resolve();
 });
 
@@ -60,36 +65,42 @@ export default function RootLayout() {
     const { registerFCM } = useFCMRegistration();
 
     const handleNotificationNavigation = (data: any) => {
-        // console.log("🔀 Navigating using notification data:", data);
+        console.log("🔀 Navigating using notification data:", data);
 
         // Example: Odoo URL passed from backend
-        if (data.url) {
+        if (data.record_url) {
+            console.log("🚀 Navigating to home with URL:", data.record_url);
             router.push({
                 pathname: "/home",
-                params: { baseUrl: data.url },
+                params: { baseUrl: data.record_url },
             });
             return;
+        } else {
+            console.log("❌ No record_url found in notification data");
         }
     };
 
     useEffect(() => {
-        // 1️⃣ App opened from background
-        const unsubscribe = onNotificationOpenedApp(
-            getMessaging(),
-            (remoteMessage) => {
-                if (remoteMessage?.data) {
-                    handleNotificationNavigation(remoteMessage.data);
-                }
+        // Check for notification data that was stored when app was launched from quit state
+        // This handles the case where getInitialNotification() stored data in global.__notificationData
+        const notificationCheckTimeout = setTimeout(() => {
+            console.log("🕒 Checking for stored notification data...");
+            console.log(
+                "🔍 Current global.__notificationData:",
+                global.__notificationData
+            );
+            if (global.__notificationData) {
+                console.log("✅ Found notification data, processing...");
+                handleNotificationNavigation(global.__notificationData);
+                global.__notificationData = null;
+            } else {
+                console.log("❌ No notification data found");
             }
-        );
+        }, 500);
 
-        // 2️⃣ App opened from quit (background handler already stored data)
-        if (global.__notificationData) {
-            handleNotificationNavigation(global.__notificationData);
-            global.__notificationData = null;
-        }
-
-        return unsubscribe;
+        return () => {
+            clearTimeout(notificationCheckTimeout);
+        };
     }, []);
 
     useEffect(() => {

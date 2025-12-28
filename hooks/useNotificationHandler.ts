@@ -24,15 +24,15 @@ export function useNotificationHandler() {
         const unsubscribeForeground = onMessage(
             getMessaging(),
             async (remoteMessage) => {
-                // console.log("📱 Foreground Message Received:", {
-                //     title:
-                //         remoteMessage.data?.title ||
-                //         remoteMessage.notification?.title,
-                //     body:
-                //         remoteMessage.data?.body ||
-                //         remoteMessage.notification?.body,
-                //     data: remoteMessage.data,
-                // });
+                console.log("📱 Foreground Message Received:", {
+                    title:
+                        remoteMessage.data?.title ||
+                        remoteMessage.notification?.title,
+                    body:
+                        remoteMessage.data?.body ||
+                        remoteMessage.notification?.body,
+                    data: remoteMessage.data,
+                });
 
                 // Display using expo-notifications for heads-up banner
                 // Use data payload for title/body to be consistent
@@ -65,20 +65,23 @@ export function useNotificationHandler() {
         const unsubscribeNotificationResponse =
             Notifications.addNotificationResponseReceivedListener(
                 (response) => {
-                    // console.log("👆 Notification Pressed:");
-                    // console.log(
-                    //     "Notification Data:",
-                    //     response.notification.request.content.data
-                    // );
+                    console.log("👆 Notification Pressed:");
+                    console.log(
+                        "Notification Data:",
+                        response.notification.request.content.data
+                    );
 
                     // Handle navigation or any action based on notification data
                     const data = response.notification.request.content.data;
-                    if (data?.url && typeof data.url === "string") {
+                    if (
+                        data?.record_url &&
+                        typeof data.record_url === "string"
+                    ) {
                         // Navigate to the URL
-                        // console.log("Navigate to:", data.url);
+                        console.log("Navigate to:", data.record_url);
                         router.navigate({
                             pathname: "/home",
-                            params: { baseUrl: data.url },
+                            params: { baseUrl: data.record_url },
                         });
                     }
                 }

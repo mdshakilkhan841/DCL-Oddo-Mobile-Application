@@ -1,4 +1,5 @@
 import SessionModal from "@/components/SessionModal";
+import { getDeviceId } from "@/hooks/useDeviceId";
 import { useFCMRegistration } from "@/hooks/useFCMRegistration";
 import { useSessionHandler } from "@/hooks/useSessionHandler";
 import { useDomainStore } from "@/store/domainStore";
@@ -11,6 +12,7 @@ import {
 } from "@expo/vector-icons";
 import BottomSheet from "@gorhom/bottom-sheet";
 import CookieManager from "@react-native-cookies/cookies";
+import { getMessaging, getToken } from "@react-native-firebase/messaging";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useRef, useState } from "react";
@@ -58,15 +60,15 @@ const Signin = () => {
         setLoading,
     });
 
-    // useEffect(() => {
-    //     const initializeAndGetToken = async () => {
-    //         const fcmToken = await getToken(getMessaging());
-    //         const deviceId = await getDeviceId();
-    //         console.log("🚀 ~ initializeAndGetToken ~ deviceId:", deviceId);
-    //         console.log("🚀 ~ initializeAndGetToken ~ fcmToken:", fcmToken);
-    //     };
-    //     initializeAndGetToken();
-    // }, []);
+    useEffect(() => {
+        const initializeAndGetToken = async () => {
+            const fcmToken = await getToken(getMessaging());
+            const deviceId = await getDeviceId();
+            console.log("🚀 ~ initializeAndGetToken ~ deviceId:", deviceId);
+            console.log("🚀 ~ initializeAndGetToken ~ fcmToken:", fcmToken);
+        };
+        initializeAndGetToken();
+    }, []);
 
     useEffect(() => {
         loadStoredData();
