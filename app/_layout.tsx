@@ -8,7 +8,7 @@ import {
     onTokenRefresh,
     setBackgroundMessageHandler,
 } from "@react-native-firebase/messaging";
-import { router, Stack } from "expo-router";
+import { Stack } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import * as SplashScreen from "expo-splash-screen";
 import { useCallback, useEffect, useState } from "react";
@@ -17,23 +17,15 @@ import "react-native-gesture-handler";
 
 SplashScreen.preventAutoHideAsync();
 
-declare global {
-    var __notificationData: any;
-}
-
 // Register background handler
-setBackgroundMessageHandler(getMessaging(), async (remoteMessage) => {
-    console.log("🔥 Background handler called with:", remoteMessage?.data);
-    if (remoteMessage?.data) {
-        // Store notification data globally for when app is launched from closed state
-        global.__notificationData = remoteMessage.data;
-        console.log("💾 Stored notification data:", global.__notificationData);
-    }
+setBackgroundMessageHandler(getMessaging(), async () => {
     return Promise.resolve();
 });
 
 export default function RootLayout() {
     const [ready, setReady] = useState(false);
+    const { sessions } = useSessionStore();
+    const { registerFCM } = useFCMRegistration();
 
     useEffect(() => {
         async function prepare() {
@@ -58,50 +50,8 @@ export default function RootLayout() {
 
     // Initialize notification setup (channels, permissions)
     useNotificationSetup();
-
     // Initialize notification handler (handles foreground & press events)
     useNotificationHandler();
-    const { sessions } = useSessionStore();
-    const { registerFCM } = useFCMRegistration();
-
-    const handleNotificationNavigation = (data: any) => {
-        console.log("🔀 Navigating using notification data:", data);
-
-        // Example: Odoo URL passed from backend
-        if (data.record_url) {
-            console.log("🚀 Navigating to home with URL:", data.record_url);
-            router.push({
-                pathname: "/home",
-                params: { baseUrl: data.record_url },
-            });
-            return;
-        } else {
-            console.log("❌ No record_url found in notification data");
-        }
-    };
-
-    useEffect(() => {
-        // Check for notification data that was stored when app was launched from quit state
-        // This handles the case where getInitialNotification() stored data in global.__notificationData
-        const notificationCheckTimeout = setTimeout(() => {
-            console.log("🕒 Checking for stored notification data...");
-            console.log(
-                "🔍 Current global.__notificationData:",
-                global.__notificationData
-            );
-            if (global.__notificationData) {
-                console.log("✅ Found notification data, processing...");
-                handleNotificationNavigation(global.__notificationData);
-                global.__notificationData = null;
-            } else {
-                console.log("❌ No notification data found");
-            }
-        }, 500);
-
-        return () => {
-            clearTimeout(notificationCheckTimeout);
-        };
-    }, []);
 
     useEffect(() => {
         const tryRegister = async () => {
@@ -190,7 +140,7 @@ export default function RootLayout() {
                     options={{
                         gestureEnabled: false,
                         headerShown: true,
-                        title: "Odoo Module",
+                        title: "ERP Application",
                         animation: "slide_from_right",
                     }}
                 />

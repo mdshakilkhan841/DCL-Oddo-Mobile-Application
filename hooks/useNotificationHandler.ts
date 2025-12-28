@@ -1,4 +1,8 @@
-import { getMessaging, onMessage } from "@react-native-firebase/messaging";
+import {
+    getInitialNotification,
+    getMessaging,
+    onMessage,
+} from "@react-native-firebase/messaging";
 import * as Notifications from "expo-notifications";
 import { router } from "expo-router";
 import { useEffect } from "react";
@@ -66,19 +70,17 @@ export function useNotificationHandler() {
             Notifications.addNotificationResponseReceivedListener(
                 (response) => {
                     console.log("👆 Notification Pressed:");
-                    console.log(
-                        "Notification Data:",
-                        response.notification.request.content.data
-                    );
 
                     // Handle navigation or any action based on notification data
                     const data = response.notification.request.content.data;
+                    console.log("🚀 ~ useNotificationHandler ~ data:", data);
                     if (
                         data?.record_url &&
                         typeof data.record_url === "string"
                     ) {
                         // Navigate to the URL
                         console.log("Navigate to:", data.record_url);
+                        // Use router.replace instead of router.navigate to avoid navigation conflicts
                         router.navigate({
                             pathname: "/home",
                             params: { baseUrl: data.record_url },
@@ -86,6 +88,32 @@ export function useNotificationHandler() {
                     }
                 }
             );
+
+        // When a notification is tapped while app is in background/killed
+        // onNotificationOpenedApp(getMessaging(), (remoteMessage) => {
+        //     console.log("📲 Notification Pressed (Background/Killed):");
+        //     console.log("Title:", remoteMessage.notification?.title);
+        //     console.log("Body:", remoteMessage.notification?.body);
+        //     console.log("Data:", remoteMessage.data);
+        // });
+
+        // When app is launched BY tapping a notification from quit state
+        getInitialNotification(getMessaging()).then((remoteMessage) => {
+            if (remoteMessage) {
+                console.log("🚀 App opened from quit state via notification:");
+                const data = remoteMessage.data;
+                // console.log("🚀 ~ useNotificationHandler ~ data:", data);
+                if (data?.record_url && typeof data.record_url === "string") {
+                    // Navigate to the URL
+                    console.log("Navigate to:", data.record_url);
+                    // Use router.replace instead of router.navigate to avoid navigation conflicts
+                    router.replace({
+                        pathname: "/home",
+                        params: { baseUrl: data.record_url },
+                    });
+                }
+            }
+        });
 
         return () => {
             unsubscribeForeground();
