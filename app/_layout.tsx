@@ -51,7 +51,7 @@ export default function RootLayout() {
     // Initialize notification setup (channels, permissions)
     useNotificationSetup();
     // Initialize notification handler (handles foreground & press events)
-    useNotificationHandler();
+    useNotificationHandler(ready);
 
     useEffect(() => {
         const tryRegister = async () => {

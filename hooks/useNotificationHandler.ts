@@ -22,8 +22,10 @@ Notifications.setNotificationHandler({
     },
 });
 
-export function useNotificationHandler() {
+export function useNotificationHandler(isReady: boolean) {
     useEffect(() => {
+        if (!isReady) return;
+
         // 1️⃣ Handle foreground notifications (App is open)
         const unsubscribeForeground = onMessage(
             getMessaging(),
@@ -102,7 +104,7 @@ export function useNotificationHandler() {
             if (remoteMessage) {
                 console.log("🚀 App opened from quit state via notification:");
                 const data = remoteMessage.data;
-                // console.log("🚀 ~ useNotificationHandler ~ data:", data);
+                console.log("🚀 ~ useNotificationHandler ~ data:", data);
                 if (data?.record_url && typeof data.record_url === "string") {
                     // Navigate to the URL
                     console.log("Navigate to:", data.record_url);
@@ -119,5 +121,5 @@ export function useNotificationHandler() {
             unsubscribeForeground();
             unsubscribeNotificationResponse.remove();
         };
-    }, []);
+    }, [isReady]);
 }
