@@ -259,6 +259,7 @@ const Signin = () => {
                                                 style={styles.textInputStyle}
                                                 placeholder="Domain"
                                                 placeholderTextColor="#999"
+                                                autoCapitalize="none"
                                                 value={domain}
                                                 onChangeText={(v) => {
                                                     setDomain(v);
@@ -436,6 +437,8 @@ const Signin = () => {
                                         placeholderTextColor="#999"
                                         value={email}
                                         onChangeText={setEmail}
+                                        autoCapitalize="none"
+                                        // keyboardType="email-address"
                                     />
 
                                     <View style={styles.passwordBox}>
