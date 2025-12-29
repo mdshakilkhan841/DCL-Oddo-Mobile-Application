@@ -59,7 +59,7 @@ export function useFCMRegistration() {
                     }
                 ).then((res) => res.json());
 
-                console.log("🚀 ~ registerFCM ~ res:", res.message);
+                // console.log("🚀 ~ registerFCM ~ res:", res.message);
 
                 await SecureStore.setItemAsync("fcm_token", fcmToken);
             }

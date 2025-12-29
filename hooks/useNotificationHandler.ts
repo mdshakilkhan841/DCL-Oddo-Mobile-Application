@@ -31,15 +31,15 @@ export function useNotificationHandler(isReady: boolean) {
         const unsubscribeForeground = onMessage(
             getMessaging(),
             async (remoteMessage) => {
-                console.log("📱 Foreground Message Received:", {
-                    title:
-                        remoteMessage.data?.title ||
-                        remoteMessage.notification?.title,
-                    body:
-                        remoteMessage.data?.body ||
-                        remoteMessage.notification?.body,
-                    data: remoteMessage.data,
-                });
+                // console.log("📱 Foreground Message Received:", {
+                //     title:
+                //         remoteMessage.data?.title ||
+                //         remoteMessage.notification?.title,
+                //     body:
+                //         remoteMessage.data?.body ||
+                //         remoteMessage.notification?.body,
+                //     data: remoteMessage.data,
+                // });
 
                 // Display using expo-notifications for heads-up banner
                 // Use data payload for title/body to be consistent
@@ -72,17 +72,17 @@ export function useNotificationHandler(isReady: boolean) {
         const unsubscribeNotificationResponse =
             Notifications.addNotificationResponseReceivedListener(
                 (response) => {
-                    console.log("👆 Notification Pressed:");
+                    // console.log("👆 Notification Pressed:");
 
                     // Handle navigation or any action based on notification data
                     const data = response.notification.request.content.data;
-                    console.log("🚀 ~ useNotificationHandler ~ data:", data);
+                    // console.log("🚀 ~ useNotificationHandler ~ data:", data);
                     if (
                         data?.record_url &&
                         typeof data.record_url === "string"
                     ) {
                         // Navigate to the URL
-                        console.log("Navigate to:", data.record_url);
+                        // console.log("Navigate to:", data.record_url);
                         // Use router.replace instead of router.navigate to avoid navigation conflicts
                         router.navigate({
                             pathname: "/home",
@@ -115,10 +115,10 @@ export function useNotificationHandler(isReady: boolean) {
         getInitialNotification(getMessaging()).then((remoteMessage) => {
             if (remoteMessage) {
                 const data = remoteMessage.data;
-                console.log("🚀 ~ useNotificationHandler ~ data:", data);
+                // console.log("🚀 ~ useNotificationHandler ~ data:", data);
                 if (data?.record_url && typeof data.record_url === "string") {
                     // Navigate to the URL
-                    console.log("Navigate to:", data.record_url);
+                    // console.log("Navigate to:", data.record_url);
                     // Use router.replace instead of router.navigate to avoid navigation conflicts
                     router.replace({
                         pathname: "/home",

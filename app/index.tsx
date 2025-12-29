@@ -14,9 +14,9 @@ export default function Index() {
                 const validSession = await getValidSession(sessions);
 
                 if (validSession) {
-                    console.log(
-                        "✅ Valid session found, redirecting to home..."
-                    );
+                    // console.log(
+                    //     "✅ Valid session found, redirecting to home..."
+                    // );
                     // Redirect to home page with the valid session's base URL
                     router.replace({
                         pathname: "/home",

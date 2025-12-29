@@ -30,7 +30,7 @@ export async function validateSession(session: Session): Promise<boolean> {
             return false;
         }
 
-        console.log("✅ Session cookie is valid");
+        // console.log("✅ Session cookie is valid");
         return true;
     } catch (error) {
         console.error("❌ Error validating session:", error);

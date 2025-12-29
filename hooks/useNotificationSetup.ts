@@ -30,7 +30,7 @@ export function useNotificationSetup() {
                     });
                 }
 
-                console.log("🔔 Notification channels set up successfully");
+                // console.log("🔔 Notification channels set up successfully");
             } catch (error) {
                 console.log("Error setting up notifications:", error);
             }
