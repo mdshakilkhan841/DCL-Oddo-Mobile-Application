@@ -258,6 +258,7 @@ const Signin = () => {
                                             <TextInput
                                                 style={styles.textInputStyle}
                                                 placeholder="Domain"
+                                                placeholderTextColor="#999"
                                                 value={domain}
                                                 onChangeText={(v) => {
                                                     setDomain(v);
@@ -288,6 +289,7 @@ const Signin = () => {
                                                         <TextInput
                                                             editable={false}
                                                             placeholder="Select Database"
+                                                            placeholderTextColor="#999"
                                                         >
                                                             {selectedDb}
                                                         </TextInput>
@@ -431,6 +433,7 @@ const Signin = () => {
                                     <TextInput
                                         style={styles.textInputStyle}
                                         placeholder="User ID"
+                                        placeholderTextColor="#999"
                                         value={email}
                                         onChangeText={setEmail}
                                     />
@@ -442,6 +445,7 @@ const Signin = () => {
                                                 paddingVertical: 8,
                                             }}
                                             placeholder="Password"
+                                            placeholderTextColor="#999"
                                             secureTextEntry={!isPasswordVisible}
                                             value={password}
                                             onChangeText={setPassword}
@@ -460,6 +464,7 @@ const Signin = () => {
                                                         : "eye"
                                                 }
                                                 size={18}
+                                                color="#666"
                                             />
                                         </TouchableOpacity>
                                     </View>
