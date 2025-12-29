@@ -2,6 +2,7 @@ import {
     getInitialNotification,
     getMessaging,
     onMessage,
+    onNotificationOpenedApp,
 } from "@react-native-firebase/messaging";
 import * as Notifications from "expo-notifications";
 import { router } from "expo-router";
@@ -99,10 +100,20 @@ export function useNotificationHandler(isReady: boolean) {
         //     console.log("Data:", remoteMessage.data);
         // });
 
+        onNotificationOpenedApp(getMessaging(), (remoteMessage) => {
+            console.log("📲 Notification Pressed (Background/Killed):");
+            const data = remoteMessage.data;
+            if (data?.record_url && typeof data.record_url === "string") {
+                router.push({
+                    pathname: "/home",
+                    params: { baseUrl: data.record_url },
+                });
+            }
+        });
+
         // When app is launched BY tapping a notification from quit state
         getInitialNotification(getMessaging()).then((remoteMessage) => {
             if (remoteMessage) {
-                console.log("🚀 App opened from quit state via notification:");
                 const data = remoteMessage.data;
                 console.log("🚀 ~ useNotificationHandler ~ data:", data);
                 if (data?.record_url && typeof data.record_url === "string") {
