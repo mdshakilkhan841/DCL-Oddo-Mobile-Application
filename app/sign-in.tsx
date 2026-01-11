@@ -453,10 +453,13 @@ const Signin = () => {
 
                                     <View style={styles.passwordBox}>
                                         <TextInput
-                                            style={{
-                                                flex: 1,
-                                                paddingVertical: 8,
-                                            }}
+                                            style={[
+                                                {
+                                                    flex: 1,
+                                                    paddingVertical: 8,
+                                                },
+                                                styles.passwordInput,
+                                            ]}
                                             placeholder="Password"
                                             placeholderTextColor="#999"
                                             secureTextEntry={!isPasswordVisible}
@@ -795,5 +798,8 @@ const styles = StyleSheet.create({
         textAlign: "center",
         color: "#696969",
         paddingVertical: 4,
+    },
+    passwordInput: {
+        color: "#333", // Dark color for light mode
     },
 });
