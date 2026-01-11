@@ -17,6 +17,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
     ActivityIndicator,
     Alert,
+    Dimensions,
     Image,
     KeyboardAvoidingView,
     Platform,
@@ -31,6 +32,33 @@ import {
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 const Signin = () => {
+    // Get screen dimensions
+    const { width: screenWidth } = Dimensions.get("window");
+
+    // Determine if device is tablet (typically 600px or wider)
+    const isTablet = screenWidth >= 600;
+
+    // Responsive card style
+    const getCardStyle = () => {
+        return {
+            marginBottom: 20,
+            borderRadius: 14,
+            elevation: 2,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 2,
+            gap: 16,
+            ...(isTablet && {
+                maxWidth: 500,
+                width: "100%" as const,
+                alignSelf: "center" as const,
+            }),
+            ...(!isTablet && {
+                marginHorizontal: 20,
+            }),
+        };
+    };
     const {
         domain,
         databases,
@@ -263,7 +291,7 @@ const Signin = () => {
                             {/* Domain CARD */}
                             <View
                                 style={[
-                                    styles.card,
+                                    getCardStyle(),
                                     {
                                         backgroundColor: "#EFF2FF",
                                     },
@@ -460,7 +488,7 @@ const Signin = () => {
                             {/* LOGIN CARD */}
                             <View
                                 style={[
-                                    styles.card,
+                                    getCardStyle(),
                                     { backgroundColor: "#FFFF" },
                                 ]}
                             >
