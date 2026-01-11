@@ -13,7 +13,7 @@ import BottomSheet from "@gorhom/bottom-sheet";
 import CookieManager from "@react-native-cookies/cookies";
 import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
     ActivityIndicator,
     Alert,
@@ -44,21 +44,42 @@ const Signin = () => {
         domainMappings,
     } = useDomainStore();
 
-    const [dbDropdownVisible, setDbDropdownVisible] = useState(false);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
     const [dbFetching, setDbFetching] = useState(false);
     const [showLoginPanel, setShowLoginPanel] = useState(false);
+    const [autoFetchComplete, setAutoFetchComplete] = useState(false);
+    const [domainInvalid, setDomainInvalid] = useState(false);
+    const [domainInput, setDomainInput] = useState(domain);
 
     const { addSession } = useSessionStore();
     const bottomSheetRef = useRef<BottomSheet>(null);
+    const debounceTimeoutRef = useRef<number | null>(null);
     const { registerFCM } = useFCMRegistration();
     const { handleSelectSession } = useSessionHandler({
         bottomSheetRef,
         setLoading,
     });
+
+    const debouncedSetDomain = useCallback(
+        (value: string) => {
+            setDomainInput(value); // Update input immediately
+            setDomainInvalid(false); // Reset error state when user types
+            if (debounceTimeoutRef.current) {
+                clearTimeout(debounceTimeoutRef.current);
+            }
+            debounceTimeoutRef.current = setTimeout(() => {
+                setDomain(value);
+                setDatabases([]);
+                setSelectedDb(null);
+                setAutoFetchComplete(false);
+                setDomainInvalid(false); // Reset error state when domain changes
+            }, 500); // 500ms debounce
+        },
+        [setDomain, setDatabases, setSelectedDb]
+    );
 
     // const localStorage = await SecureStore.getItemAsync("domain-data");
     // console.log("🚀 ~ Signin ~ localStorage:", localStorage);
@@ -77,6 +98,11 @@ const Signin = () => {
         loadStoredData();
     }, []);
 
+    // Sync domainInput with domain from store
+    useEffect(() => {
+        setDomainInput(domain);
+    }, [domain]);
+
     const workingDomain = domainMappings[domain] || domain;
     const LOGIN_API = `https://${workingDomain}/web/session/authenticate`;
 
@@ -88,6 +114,61 @@ const Signin = () => {
             password: password,
         },
     };
+
+    // Auto-fetch database when domain changes
+    useEffect(() => {
+        const autoFetchDatabase = async () => {
+            if (!domain) return;
+
+            setDbFetching(true);
+            setAutoFetchComplete(false);
+            try {
+                // Get the working domain (with proper www handling)
+                const workingDomain = await getWorkingDomain(domain);
+
+                const res = await fetch(
+                    `https://${workingDomain}/web/database/list`,
+                    {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            jsonrpc: "2.0",
+                            method: "call",
+                            params: {},
+                        }),
+                    }
+                );
+
+                const data = await res.json();
+                const list = data?.result || [];
+
+                if (list.length > 0) {
+                    setDatabases(list);
+                    setSelectedDb(list[0]);
+                    await saveToStorage();
+                    setAutoFetchComplete(true);
+                }
+            } catch (err) {
+                // Error fetching database list - mark domain as invalid
+                setDomainInvalid(true);
+            } finally {
+                setDbFetching(false);
+            }
+        };
+
+        if (domain) {
+            autoFetchDatabase();
+        }
+    }, [domain]);
+
+    // Cleanup debounce timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (debounceTimeoutRef.current) {
+                clearTimeout(debounceTimeoutRef.current);
+            }
+        };
+    }, []);
 
     const navigateToHome = (baseUrl: string) => {
         router.replace({
@@ -107,45 +188,7 @@ const Signin = () => {
         });
     };
 
-    const fetchDatabaseList = async () => {
-        if (!domain) return;
-
-        if (databases.length > 0) {
-            setDbDropdownVisible(!dbDropdownVisible);
-            return;
-        }
-
-        setDbFetching(true);
-        try {
-            // Get the working domain (with proper www handling)
-            const workingDomain = await getWorkingDomain(domain);
-
-            const res = await fetch(
-                `https://${workingDomain}/web/database/list`,
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        jsonrpc: "2.0",
-                        method: "call",
-                        params: {},
-                    }),
-                }
-            );
-
-            const data = await res.json();
-            const list = data?.result || [];
-
-            setDatabases(list);
-            setSelectedDb(list[0]);
-            setDbDropdownVisible(true);
-            await saveToStorage();
-        } catch (err) {
-            Alert.alert("Error", "Could not fetch database list");
-        } finally {
-            setDbFetching(false);
-        }
-    };
+    // Remove the fetchDatabaseList function since we're using auto-fetch
 
     const handleLogin = async () => {
         try {
@@ -255,98 +298,44 @@ const Signin = () => {
                                             </Text>
                                         </View>
                                     </View>
-                                    <View
-                                        style={[
-                                            styles.inputContainer,
-                                            { zIndex: 10 },
-                                        ]}
-                                    >
+                                    <View style={styles.inputContainer}>
                                         <View>
                                             <Text style={styles.inputLabel}>
                                                 Domain
                                             </Text>
-                                            <TextInput
-                                                style={styles.textInputStyle}
-                                                placeholder="Domain"
-                                                placeholderTextColor="#999"
-                                                autoCapitalize="none"
-                                                value={domain}
-                                                onChangeText={(v) => {
-                                                    setDomain(v);
-                                                    setDatabases([]);
-                                                    setSelectedDb(null);
+                                            <View
+                                                style={{
+                                                    flexDirection: "row",
+                                                    alignItems: "center",
                                                 }}
-                                            />
-                                        </View>
-
-                                        <View>
-                                            <Text style={styles.inputLabel}>
-                                                Database
-                                            </Text>
-                                            <TouchableOpacity
-                                                style={styles.input}
-                                                onPress={fetchDatabaseList}
-                                                activeOpacity={0.6}
-                                                disabled={!domain}
                                             >
-                                                <View
-                                                    style={
-                                                        styles.dbInputContainer
+                                                <TextInput
+                                                    style={[
+                                                        styles.textInputStyle,
+                                                        { flex: 1 },
+                                                    ]}
+                                                    placeholder="Domain"
+                                                    placeholderTextColor="#999"
+                                                    autoCapitalize="none"
+                                                    value={domainInput}
+                                                    onChangeText={
+                                                        debouncedSetDomain
                                                     }
-                                                >
-                                                    {dbFetching ? (
-                                                        <ActivityIndicator />
-                                                    ) : (
-                                                        <TextInput
-                                                            editable={false}
-                                                            placeholder="Select Database"
-                                                            placeholderTextColor="#999"
-                                                        >
-                                                            {selectedDb}
-                                                        </TextInput>
-                                                    )}
-                                                    <Feather
-                                                        name={
-                                                            dbDropdownVisible
-                                                                ? "chevron-up"
-                                                                : "chevron-down"
-                                                        }
-                                                        size={20}
-                                                        color="#666"
+                                                />
+                                                {/* {dbFetching && (
+                                                    <ActivityIndicator
+                                                        size="small"
+                                                        color="#000783"
+                                                        style={{
+                                                            marginLeft: 10,
+                                                        }}
                                                     />
-                                                </View>
-                                            </TouchableOpacity>
-                                            {dbDropdownVisible && (
-                                                <ScrollView
-                                                    style={styles.dropdownBox}
-                                                    nestedScrollEnabled
-                                                >
-                                                    {databases.map((db) => (
-                                                        <TouchableOpacity
-                                                            activeOpacity={0.6}
-                                                            key={db}
-                                                            style={
-                                                                styles.dropdownItem
-                                                            }
-                                                            onPress={() => {
-                                                                setSelectedDb(
-                                                                    db
-                                                                );
-                                                                setDbDropdownVisible(
-                                                                    false
-                                                                );
-                                                                saveToStorage();
-                                                            }}
-                                                        >
-                                                            <Text>{db}</Text>
-                                                        </TouchableOpacity>
-                                                    ))}
-                                                </ScrollView>
-                                            )}
+                                                )} */}
+                                            </View>
                                         </View>
                                     </View>
 
-                                    {databases.length > 0 && selectedDb && (
+                                    {autoFetchComplete && (
                                         <View style={styles.successBox}>
                                             <Feather
                                                 name="check-circle"
@@ -354,8 +343,57 @@ const Signin = () => {
                                                 color="#1e7f3c"
                                             />
                                             <Text style={styles.successText}>
-                                                Domain is active and database
-                                                selected
+                                                Domain is valid and database
+                                                fetched.
+                                            </Text>
+                                        </View>
+                                    )}
+                                    {domainInvalid && !dbFetching && (
+                                        <View
+                                            style={[
+                                                styles.successBox,
+                                                {
+                                                    backgroundColor: "#ffeaea",
+                                                    borderColor: "#dc3545",
+                                                },
+                                            ]}
+                                        >
+                                            <Feather
+                                                name="x-circle"
+                                                size={18}
+                                                color="#dc3545"
+                                            />
+                                            <Text
+                                                style={[
+                                                    styles.successText,
+                                                    { color: "#dc3545" },
+                                                ]}
+                                            >
+                                                Invalid domain
+                                            </Text>
+                                        </View>
+                                    )}
+                                    {dbFetching && (
+                                        <View
+                                            style={[
+                                                styles.successBox,
+                                                {
+                                                    backgroundColor: "#e8f3ff",
+                                                    borderColor: "#000783",
+                                                },
+                                            ]}
+                                        >
+                                            <ActivityIndicator
+                                                size="small"
+                                                color="#000783"
+                                            />
+                                            <Text
+                                                style={[
+                                                    styles.successText,
+                                                    { color: "#000783" },
+                                                ]}
+                                            >
+                                                Fetching database information...
                                             </Text>
                                         </View>
                                     )}
@@ -403,7 +441,7 @@ const Signin = () => {
                                 </TouchableOpacity>
                             </View>
 
-                            {databases.length > 0 && selectedDb && (
+                            {autoFetchComplete && (
                                 <Pressable
                                     onPress={() => setShowLoginPanel(true)}
                                     style={({ pressed }) => [
