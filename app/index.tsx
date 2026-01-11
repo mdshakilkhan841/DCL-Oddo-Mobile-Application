@@ -1,6 +1,6 @@
 import { useSessionStore } from "@/store/sessionStore";
 import { getValidSession } from "@/utils/validateSession";
-import { Redirect, router } from "expo-router";
+import { router } from "expo-router";
 import { useEffect } from "react";
 
 export default function Index() {
@@ -8,36 +8,44 @@ export default function Index() {
 
     useEffect(() => {
         const checkAndRedirect = async () => {
-            // Check if there are any valid sessions
-            if (sessions.length > 0) {
-                // Validate sessions to find the first valid one
-                const validSession = await getValidSession(sessions);
+            try {
+                // Check if there are any valid sessions
+                if (sessions.length > 0) {
+                    // Validate sessions to find the first valid one
+                    const validSession = await getValidSession(sessions);
 
-                if (validSession) {
-                    // console.log(
-                    //     "✅ Valid session found, redirecting to home..."
-                    // );
-                    // Redirect to home page with the valid session's base URL
-                    router.replace({
-                        pathname: "/home",
-                        params: {
-                            baseUrl: `${validSession.baseUrl}/web`,
-                        },
-                    });
-                    return;
-                } else {
-                    console.log(
-                        "❌ No valid sessions found (expired/invalid cookies)"
-                    );
-                    // All sessions are invalid, redirect to sign-in
-                    router.replace("/sign-in");
+                    if (validSession) {
+                        // console.log(
+                        //     "✅ Valid session found, redirecting to home..."
+                        // );
+                        // Redirect to home page with the valid session's base URL
+                        router.replace({
+                            pathname: "/home",
+                            params: {
+                                baseUrl: `${validSession.baseUrl}/web`,
+                            },
+                        });
+                        return;
+                    }
                 }
+
+                // console.log(
+                //     "❌ No valid sessions found, redirecting to sign-in"
+                // );
+                // No valid sessions, redirect to sign-in
+                router.replace("/sign-in");
+            } catch (error) {
+                console.error("❌ Error during session validation:", error);
+                // If there's any error, redirect to sign-in as a fallback
+                router.replace("/sign-in");
             }
         };
 
-        checkAndRedirect();
+        // Use setTimeout to ensure this runs after the initial render
+        const timeoutId = setTimeout(checkAndRedirect, 50);
+        return () => clearTimeout(timeoutId);
     }, [sessions]);
 
-    // Default redirect to sign-in if no valid sessions exist
-    return <Redirect href="/sign-in" />;
+    // Return null during the check to avoid any rendering issues
+    return null;
 }

@@ -30,7 +30,7 @@ import {
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
-const Signin = async () => {
+const Signin = () => {
     const {
         domain,
         databases,
@@ -41,6 +41,7 @@ const Signin = async () => {
         loadStoredData,
         saveToStorage,
         getWorkingDomain,
+        domainMappings,
     } = useDomainStore();
 
     const [dbDropdownVisible, setDbDropdownVisible] = useState(false);
@@ -76,7 +77,8 @@ const Signin = async () => {
         loadStoredData();
     }, []);
 
-    const LOGIN_API = `https://${domain}/web/session/authenticate`;
+    const workingDomain = domainMappings[domain] || domain;
+    const LOGIN_API = `https://${workingDomain}/web/session/authenticate`;
 
     const body = {
         jsonrpc: "2.0",
