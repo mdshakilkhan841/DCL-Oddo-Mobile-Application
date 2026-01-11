@@ -40,4 +40,8 @@ app-example
 
 # generated native folders
 
+# Credentials
+.env
+*.keystore
+*.jks
 credentials.json
