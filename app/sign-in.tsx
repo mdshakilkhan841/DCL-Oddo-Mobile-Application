@@ -30,7 +30,7 @@ import {
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
-const Signin = () => {
+const Signin = async () => {
     const {
         domain,
         databases,
@@ -40,6 +40,7 @@ const Signin = () => {
         setSelectedDb,
         loadStoredData,
         saveToStorage,
+        getWorkingDomain,
     } = useDomainStore();
 
     const [dbDropdownVisible, setDbDropdownVisible] = useState(false);
@@ -57,6 +58,9 @@ const Signin = () => {
         bottomSheetRef,
         setLoading,
     });
+
+    // const localStorage = await SecureStore.getItemAsync("domain-data");
+    // console.log("🚀 ~ Signin ~ localStorage:", localStorage);
 
     // useEffect(() => {
     //     const initializeAndGetToken = async () => {
@@ -111,15 +115,21 @@ const Signin = () => {
 
         setDbFetching(true);
         try {
-            const res = await fetch(`https://${domain}/web/database/list`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    jsonrpc: "2.0",
-                    method: "call",
-                    params: {},
-                }),
-            });
+            // Get the working domain (with proper www handling)
+            const workingDomain = await getWorkingDomain(domain);
+
+            const res = await fetch(
+                `https://${workingDomain}/web/database/list`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        jsonrpc: "2.0",
+                        method: "call",
+                        params: {},
+                    }),
+                }
+            );
 
             const data = await res.json();
             const list = data?.result || [];
