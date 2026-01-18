@@ -106,7 +106,7 @@ const Signin = () => {
                 setDomainInvalid(false); // Reset error state when domain changes
             }, 500); // 500ms debounce
         },
-        [setDomain, setDatabases, setSelectedDb]
+        [setDomain, setDatabases, setSelectedDb],
     );
 
     // const localStorage = await SecureStore.getItemAsync("domain-data");
@@ -164,7 +164,7 @@ const Signin = () => {
                             method: "call",
                             params: {},
                         }),
-                    }
+                    },
                 );
 
                 const data = await res.json();
@@ -249,7 +249,7 @@ const Signin = () => {
 
             addSession(newSession);
             await setSessionCookie(newSession);
-            registerFCM(user_id, domain);
+            registerFCM(user_id, baseUrl);
             navigateToHome(`${baseUrl}/web`);
         } catch (err: any) {
             Alert.alert("Error", err.message);
@@ -535,7 +535,7 @@ const Signin = () => {
                                         <TouchableOpacity
                                             onPress={() =>
                                                 setIsPasswordVisible(
-                                                    !isPasswordVisible
+                                                    !isPasswordVisible,
                                                 )
                                             }
                                         >

@@ -47,12 +47,12 @@ export function useNotificationHandler(isReady: boolean) {
                 const title = String(
                     remoteMessage.data?.title ||
                         remoteMessage.notification?.title ||
-                        ""
+                        "",
                 );
                 const body = String(
                     remoteMessage.data?.body ||
                         remoteMessage.notification?.body ||
-                        ""
+                        "",
                 );
 
                 await Notifications.scheduleNotificationAsync({
@@ -65,7 +65,7 @@ export function useNotificationHandler(isReady: boolean) {
                     },
                     trigger: null, // Show immediately
                 });
-            }
+            },
         );
 
         // 2️⃣ Handle notification press (when user taps notification)
@@ -89,7 +89,7 @@ export function useNotificationHandler(isReady: boolean) {
                             params: { baseUrl: data.record_url },
                         });
                     }
-                }
+                },
             );
 
         // When a notification is tapped while app is in background/killed

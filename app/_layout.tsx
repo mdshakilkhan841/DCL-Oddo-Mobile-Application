@@ -60,7 +60,7 @@ export default function RootLayout() {
                 const lastSession = sessions[sessions.length - 1];
                 if (lastSession.user_id && lastSession.domain) {
                     // console.log("Attempting FCM registration on app start...");
-                    await registerFCM(lastSession.user_id, lastSession.domain);
+                    await registerFCM(lastSession.user_id, lastSession.baseUrl);
                 }
             }
         };
@@ -77,39 +77,36 @@ export default function RootLayout() {
             const currentSessions = useSessionStore.getState().sessions;
             if (currentSessions.length === 0) {
                 console.log(
-                    "No active session, cannot re-register refreshed token."
+                    "No active session, cannot re-register refreshed token.",
                 );
                 return;
             }
             const lastSession = currentSessions[currentSessions.length - 1];
-            const { user_id, domain } = lastSession;
+            const { user_id, baseUrl } = lastSession;
 
-            if (!user_id || !domain) {
+            if (!user_id || !baseUrl) {
                 console.log(
-                    "Missing user_id or domain, cannot re-register refreshed token."
+                    "Missing user_id or baseUrl, cannot re-register refreshed token.",
                 );
                 return;
             }
 
             try {
                 const deviceId = await getDeviceId();
-                const res = await fetch(
-                    `https://${domain}/firebase/register_token`,
-                    {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            user_id: user_id,
-                            device_id: deviceId,
-                            fcm_token: newToken,
-                            type: Platform.OS,
-                        }),
-                    }
-                );
+                const res = await fetch(`${baseUrl}/firebase/register_token`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        user_id: user_id,
+                        device_id: deviceId,
+                        fcm_token: newToken,
+                        type: Platform.OS,
+                    }),
+                });
 
                 if (!res.ok) {
                     throw new Error(
-                        `Backend registration failed: ${res.status}`
+                        `Backend registration failed: ${res.status}`,
                     );
                 }
 

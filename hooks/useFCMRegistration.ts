@@ -15,7 +15,7 @@ async function checkPermission(): Promise<boolean> {
 export function useFCMRegistration() {
     const registerFCM = async (
         userId: string | number | null,
-        domain: string
+        baseUrl: string,
     ) => {
         if (!userId) {
             console.log("No userId provided, skipping FCM registration");
@@ -43,8 +43,8 @@ export function useFCMRegistration() {
 
             // 5) Only send to backend if token changed or first time
             if (!oldToken || oldToken !== fcmToken) {
-                const res = await fetch(
-                    `https://${domain}/firebase/register_token`,
+                const response = await fetch(
+                    `${baseUrl}/firebase/register_token`,
                     {
                         method: "POST",
                         headers: {
@@ -56,9 +56,17 @@ export function useFCMRegistration() {
                             fcm_token: fcmToken,
                             type: Platform.OS, // "android" / "ios"
                         }),
-                    }
-                ).then((res) => res.json());
+                    },
+                );
 
+                if (!response.ok) {
+                    console.log(
+                        `FCM Registration failed with status ${response.status}`,
+                    );
+                    return;
+                }
+
+                const res = await response.json();
                 // console.log("🚀 ~ registerFCM ~ res:", res.message);
 
                 await SecureStore.setItemAsync("fcm_token", fcmToken);
