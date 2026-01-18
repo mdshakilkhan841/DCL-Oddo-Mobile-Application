@@ -28,7 +28,7 @@
         <key>CFBundleURLSchemes</key>
         <array>
           <string>dcl</string>
-          <string>com.odoo.dcl</string>
+          <string>org.reactjs.native.example.DaffodilHub</string>
         </array>
       </dict>
     </array>

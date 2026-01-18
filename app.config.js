@@ -12,7 +12,7 @@ export default {
         newArchEnabled: true,
         ios: {
             supportsTablet: true,
-            bundleIdentifier: "com.odoo.dcl",
+            bundleIdentifier: "org.reactjs.native.example.DaffodilHub",
             googleServicesFile: "./GoogleService-Info.plist",
         },
         android: {
