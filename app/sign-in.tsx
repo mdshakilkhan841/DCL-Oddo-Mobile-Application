@@ -439,12 +439,11 @@ const Signin = () => {
                                         style={{
                                             textAlign: "center",
                                             color: "#696969",
-                                            width: 140,
                                             alignSelf: "center",
                                             backgroundColor: "#EFF2FF",
                                             paddingHorizontal: 8,
                                             position: "absolute",
-                                            top: -18,
+                                            top: -12,
                                         }}
                                     >
                                         Need log info for a different domain?
@@ -509,7 +508,7 @@ const Signin = () => {
 
                                     <TextInput
                                         style={styles.textInputStyle}
-                                        placeholder="User ID"
+                                        placeholder="User Name"
                                         placeholderTextColor="#999"
                                         value={email}
                                         onChangeText={setEmail}
@@ -845,6 +844,7 @@ const styles = StyleSheet.create({
     },
     domainLogsBtn: {
         margin: 16,
+        marginHorizontal: 20,
         flexDirection: "row",
         alignItems: "center",
         gap: 10,
@@ -852,8 +852,8 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: "#000783",
         paddingVertical: 8,
+        paddingHorizontal: 12,
         borderRadius: 8,
-        width: 150,
         alignSelf: "center",
     },
     domainLogsText: {
