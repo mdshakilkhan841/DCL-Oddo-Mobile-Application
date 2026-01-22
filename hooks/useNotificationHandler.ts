@@ -31,6 +31,10 @@ export function useNotificationHandler(isReady: boolean) {
         const unsubscribeForeground = onMessage(
             getMessaging(),
             async (remoteMessage) => {
+                // console.log(
+                //     "🚀 ~ useNotificationHandler ~ remoteMessage:",
+                //     JSON.stringify(remoteMessage, null, 2),
+                // );
                 // console.log("📱 Foreground Message Received:", {
                 //     title:
                 //         remoteMessage.data?.title ||
@@ -72,6 +76,10 @@ export function useNotificationHandler(isReady: boolean) {
         const unsubscribeNotificationResponse =
             Notifications.addNotificationResponseReceivedListener(
                 (response) => {
+                    // console.log(
+                    //     "🚀 ~ useNotificationHandler ~ response:",
+                    //     JSON.stringify(response, null, 2),
+                    // );
                     // console.log("👆 Notification Pressed:");
 
                     // Handle navigation or any action based on notification data
@@ -101,6 +109,10 @@ export function useNotificationHandler(isReady: boolean) {
         // });
 
         onNotificationOpenedApp(getMessaging(), (remoteMessage) => {
+            // console.log(
+            //     "🚀 ~ useNotificationHandler ~ remoteMessage:",
+            //     JSON.stringify(remoteMessage, null, 2),
+            // );
             console.log("📲 Notification Pressed (Background/Killed):");
             const data = remoteMessage.data;
             if (data?.record_url && typeof data.record_url === "string") {
@@ -115,7 +127,10 @@ export function useNotificationHandler(isReady: boolean) {
         getInitialNotification(getMessaging()).then((remoteMessage) => {
             if (remoteMessage) {
                 const data = remoteMessage.data;
-                // console.log("🚀 ~ useNotificationHandler ~ data:", data);
+                // console.log(
+                //     "🚀 ~ useNotificationHandler ~ data:",
+                //     JSON.stringify(data, null, 2),
+                // );
                 if (data?.record_url && typeof data.record_url === "string") {
                     // Navigate to the URL
                     // console.log("Navigate to:", data.record_url);
